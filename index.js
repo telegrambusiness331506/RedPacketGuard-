@@ -40,41 +40,27 @@ function getHelpMessage(chatId) {
 • *Time Out:* User is muted for 24 hours.
 • *Ban:* User is permanently removed from the group.
 
-⚠️ *Admins Only:* Use the buttons below to change these limits in private chat.`;
+⚠️ *Admins Only:* Use the buttons below to change these limits.`;
 }
 
-function getHelpKeyboard() {
+function getHelpKeyboard(chatId = null) {
+  const prefix = chatId ? `config_${chatId}_` : 'config_group_';
   return {
     inline_keyboard: [
-      [{ text: '🔴 Ban Spamming Limit', callback_data: 'config_ban' }],
-      [{ text: '🟡 Time Out Spamming Limit', callback_data: 'config_timeout' }]
+      [{ text: '🔴 Ban Spamming Limit', callback_data: `${prefix}ban` }],
+      [{ text: '🟡 Time Out Spamming Limit', callback_data: `${prefix}timeout` }]
     ]
   };
-}
-
-async function showGroupSelection(userId, chatId, messageId = null) {
-  const text = "🛡️ *Step 2: Choose Group*\n\nPlease enter the *Group ID* you wish to configure.\n\n_Note: You must be an admin of the group for changes to take effect._";
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: '⬅️ Back', callback_data: 'back_to_action' }]
-    ]
-  };
-  
-  if (messageId) {
-    await bot.editMessageText(text, { chat_id: chatId, message_id: messageId, reply_markup: keyboard, parse_mode: 'Markdown' });
-  } else {
-    await bot.sendMessage(chatId, text, { reply_markup: keyboard, parse_mode: 'Markdown' });
-  }
 }
 
 async function showLimitSelection(userId, chatId, messageId = null) {
   const session = configSessions.get(userId);
-  const text = `🛡️ *Step 3: Choose Violation Count*\n\nAction: *${session.action === 'timeout' ? 'Time Out' : 'Ban'}*\n\nSelect a preset below or type a custom number:`;
+  const text = `🛡️ *Choose Violation Count*\n\nAction: *${session.action === 'timeout' ? 'Time Out' : 'Ban'}*\n\nSelect a preset below or type a custom number:`;
   const keyboard = {
     inline_keyboard: [
       [{ text: '1', callback_data: 'set_limit_1' }, { text: '3', callback_data: 'set_limit_3' }, { text: '5', callback_data: 'set_limit_5' }],
       [{ text: '10', callback_data: 'set_limit_10' }, { text: '50', callback_data: 'set_limit_50' }, { text: '100', callback_data: 'set_limit_100' }],
-      [{ text: '⬅️ Back', callback_data: 'back_to_group' }]
+      [{ text: '⬅️ Back', callback_data: 'back_to_help' }]
     ]
   };
 
@@ -87,7 +73,7 @@ async function showLimitSelection(userId, chatId, messageId = null) {
 
 async function showConfirmation(userId, chatId, messageId = null) {
   const session = configSessions.get(userId);
-  const text = `🛡️ *Step 4: Confirmation*\n\n*Summary:*\n• Group ID: \`${session.groupId}\`\n• Action: *${session.action === 'timeout' ? 'Time Out' : 'Ban'}*\n• Limit: *${session.limit}* violations\n\nConfirm these settings?`;
+  const text = `🛡️ *Confirmation*\n\n*Summary:*\n• Action: *${session.action === 'timeout' ? 'Time Out' : 'Ban'}*\n• Limit: *${session.limit}* violations\n\nConfirm these settings?`;
   const keyboard = {
     inline_keyboard: [
       [{ text: '✅ Confirm', callback_data: 'confirm_config' }],
@@ -132,30 +118,28 @@ No data is sold or shared. All processing is automated.`;
 
   if (action.startsWith('config_')) {
     await bot.answerCallbackQuery(callbackQuery.id);
-    const configAction = action.split('_')[1];
-    
-    // Check permission if in group
+    const parts = action.split('_');
+    const targetChatId = parts[1];
+    const configAction = parts[2];
+
     if (msg.chat.type !== 'private') {
       const isAdmin = await isUserAdmin(chatId, userId);
       if (!isAdmin) {
         await bot.sendMessage(chatId, "❌ You do not have permission to change group settings.");
         return;
       }
-    }
-
-    configSessions.set(userId, { step: 'choose_group', action: configAction });
-    
-    if (msg.chat.type !== 'private') {
       const botMe = await bot.getMe();
       await bot.sendMessage(chatId, "📲 *Private Configuration Required*\n\nPlease continue in private chat to avoid group spam.", {
         parse_mode: 'Markdown',
         reply_markup: {
-          inline_keyboard: [[{ text: 'Go to Private Chat', url: `https://t.me/${botMe.username}?start=config` }]]
+          inline_keyboard: [[{ text: 'Go to Private Chat', url: `https://t.me/${botMe.username}?start=config_${chatId}_${configAction}` }]]
         }
       });
       return;
     }
-    showGroupSelection(userId, chatId);
+
+    configSessions.set(userId, { step: 'choose_limit', action: configAction, groupId: targetChatId });
+    showLimitSelection(userId, chatId);
   }
 
   if (action.startsWith('set_limit_')) {
@@ -178,7 +162,7 @@ No data is sold or shared. All processing is automated.`;
       else gSettings.banLimit = session.limit;
       
       groupSettings.set(session.groupId.toString(), gSettings);
-      await bot.editMessageText(`✅ *Settings Saved!*\n\n${session.action === 'timeout' ? 'Time Out' : 'Ban'} limit for group \`${session.groupId}\` is now set to *${session.limit}* violations.`, {
+      await bot.editMessageText(`✅ *Settings Saved!*\n\n${session.action === 'timeout' ? 'Time Out' : 'Ban'} limit is now set to *${session.limit}* violations.`, {
         chat_id: chatId,
         message_id: msg.message_id,
         parse_mode: 'Markdown'
@@ -187,24 +171,17 @@ No data is sold or shared. All processing is automated.`;
     }
   }
 
-  if (action === 'back_to_action') {
+  if (action === 'back_to_help') {
     await bot.answerCallbackQuery(callbackQuery.id);
+    const session = configSessions.get(userId);
+    const gid = session ? session.groupId : null;
     configSessions.delete(userId);
-    await bot.editMessageText(getHelpMessage(chatId), {
+    await bot.editMessageText(getHelpMessage(gid || chatId), {
       chat_id: chatId,
       message_id: msg.message_id,
       parse_mode: 'Markdown',
-      reply_markup: getHelpKeyboard()
+      reply_markup: getHelpKeyboard(gid)
     });
-  }
-
-  if (action === 'back_to_group') {
-    await bot.answerCallbackQuery(callbackQuery.id);
-    const session = configSessions.get(userId);
-    if (session) {
-      session.step = 'choose_group';
-      showGroupSelection(userId, chatId, msg.message_id);
-    }
   }
 
   if (action === 'back_to_limit') {
@@ -223,30 +200,21 @@ bot.on('message', async (msg) => {
   const text = msg.text;
 
   const session = configSessions.get(userId);
-  if (session && msg.chat.type === 'private') {
-    if (session.step === 'choose_group' && text && !text.startsWith('/')) {
-      const isAdmin = await isUserAdmin(text, userId);
-      if (isAdmin) {
-        session.groupId = text;
-        session.step = 'choose_limit';
-        showLimitSelection(userId, chatId);
-      } else {
-        await bot.sendMessage(chatId, "❌ *Access Denied*\n\nYou must be an admin of the group to change its settings. Please check the ID and try again.", { parse_mode: 'Markdown' });
-      }
-      return;
-    }
-    if (session.step === 'choose_limit' && text && !isNaN(text)) {
-      session.limit = parseInt(text);
-      session.step = 'confirmation';
-      showConfirmation(userId, chatId);
-      return;
-    }
+  if (session && msg.chat.type === 'private' && session.step === 'choose_limit' && text && !isNaN(text) && !text.startsWith('/')) {
+    session.limit = parseInt(text);
+    session.step = 'confirmation';
+    showConfirmation(userId, chatId);
+    return;
   }
 
   if (text === '/start' || (text && text.startsWith('/start'))) {
     const startParam = text.split(' ')[1];
-    if (startParam === 'config' && session) {
-      showGroupSelection(userId, chatId);
+    if (startParam && startParam.startsWith('config_')) {
+      const parts = startParam.split('_');
+      const gid = parts[1];
+      const action = parts[2];
+      configSessions.set(userId, { step: 'choose_limit', action: action, groupId: gid });
+      showLimitSelection(userId, chatId);
       return;
     }
     const botUser = await bot.getMe();
@@ -272,7 +240,7 @@ bot.on('message', async (msg) => {
     }
     await bot.sendMessage(chatId, getHelpMessage(chatId), {
       parse_mode: 'Markdown',
-      reply_markup: getHelpKeyboard()
+      reply_markup: getHelpKeyboard(chatId)
     });
     return;
   }
