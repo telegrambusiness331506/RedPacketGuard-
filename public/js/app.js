@@ -62,7 +62,21 @@ function renderPublicView() {
     elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
+    const botUsername = 'RedPacketGuardBot'; // In production, get this from bot.getMe() or via API
+
     let html = `
+        <div class="section">
+            <h2><i data-lucide="plus-circle"></i> Add Me</h2>
+            <div class="card" style="display: flex; gap: 12px; border: none; background: transparent; padding: 0;">
+                <button class="btn" style="margin-top: 0; flex: 1;" onclick="window.open('https://t.me/${botUsername}?startgroup=true')">
+                    <i data-lucide="users"></i> Add to Group
+                </button>
+                <button class="btn btn-secondary" style="margin-top: 0; flex: 1;" onclick="window.open('https://t.me/${botUsername}?startchannel=true')">
+                    <i data-lucide="megaphone"></i> Add to Channel
+                </button>
+            </div>
+        </div>
+
         <div class="section">
             <h2><i data-lucide="info"></i> About Red Packet Guard</h2>
             <div class="card">
@@ -74,6 +88,26 @@ function renderPublicView() {
                     </div>
                 </div>
                 <p style="margin: 12px 0 0 0; font-size: 14px; color: var(--tg-theme-hint-color);">Monitors groups to filter and remove unauthorized Red Packet codes, ensuring only valid messages pass through.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i data-lucide="gavel"></i> Current Enforcement</h2>
+            <div class="card">
+                <div class="card-item">
+                    <div class="icon-wrapper" style="color: #f59e0b;"><i data-lucide="clock"></i></div>
+                    <div>
+                        <strong>Time Out:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.timeoutLimit}</strong> violations.</p>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="ban"></i></div>
+                    <div>
+                        <strong>Ban:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
