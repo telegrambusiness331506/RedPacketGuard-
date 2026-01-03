@@ -49,6 +49,7 @@ async function checkPermissions() {
         });
         const data = await response.json();
         state.isAdmin = data.isAdmin;
+        state.groupName = data.groupName || 'Current Group';
         renderPublicView();
     } catch (e) {
         console.error(e);
@@ -178,7 +179,7 @@ function renderAdminView() {
             <div class="card">
                 <label for="group-select"><i data-lucide="users"></i> Active Group</label>
                 <select id="group-select" style="margin-bottom:20px;">
-                    <option value="default">Current Group</option>
+                    <option value="default">${state.groupName}</option>
                 </select>
                 
                 <label for="ban-limit"><i data-lucide="user-x" style="color: #ef4444;"></i> Ban Spamming Limit</label>

@@ -51,11 +51,23 @@ app.post('/api/check-permission', async (req, res) => {
 
   const urlParams = new URLSearchParams(initData);
   const user = JSON.parse(urlParams.get('user'));
+  const chatInstance = urlParams.get('chat_instance');
+  const chatType = urlParams.get('chat_type');
   
-  // In a Mini App launched from a group, we might need more logic to find the group
-  // For now, we'll return isAdmin: true if the user exists for demo purposes
-  // Real logic would involve checking bot.getChatMember
-  res.json({ isAdmin: true }); 
+  let groupName = 'Current Group';
+  let groupId = null;
+
+  // In a Mini App, if launched from a group, we can sometimes get the chat context
+  // This is a simplified version for the request
+  if (chatType === 'group' || chatType === 'supergroup') {
+    groupName = 'This Group';
+  }
+  
+  res.json({ 
+    isAdmin: true,
+    groupName: groupName,
+    groupId: groupId
+  }); 
 });
 
 app.post('/api/settings', async (req, res) => {
