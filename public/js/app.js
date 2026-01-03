@@ -74,8 +74,8 @@ function renderPublicView() {
                 <button class="btn" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages')">
                     <i data-lucide="users"></i> Add Me To Your Group
                 </button>
-                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('${newsChannelLink}')">
-                    <i data-lucide="megaphone"></i> Bots Updated News
+                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startchannel=true&admin=post_messages')">
+                    <i data-lucide="megaphone"></i> Add Me To Your Channel
                 </button>
             </div>
         </div>
