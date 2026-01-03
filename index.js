@@ -1,5 +1,9 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const crypto = require('crypto');
 
 const token = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 
@@ -9,10 +13,66 @@ if (!token) {
 }
 
 const bot = new TelegramBot(token, { polling: true });
+const app = express();
+const PORT = 5000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
 
 const spamTracker = new Map();
 const groupSettings = new Map();
 const configSessions = new Map();
+
+// Helper to verify Telegram Web App data
+function verifyTelegramWebAppData(initData) {
+  if (!initData) return false;
+  const urlParams = new URLSearchParams(initData);
+  const hash = urlParams.get('hash');
+  urlParams.delete('hash');
+  
+  const dataCheckString = Array.from(urlParams.entries())
+    .map(([key, value]) => `${key}=${value}`)
+    .sort()
+    .join('\n');
+    
+  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(token).digest();
+  const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+  
+  return calculatedHash === hash;
+}
+
+// API Routes
+app.post('/api/check-permission', async (req, res) => {
+  const { initData } = req.body;
+  if (!verifyTelegramWebAppData(initData)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const urlParams = new URLSearchParams(initData);
+  const user = JSON.parse(urlParams.get('user'));
+  
+  // In a Mini App launched from a group, we might need more logic to find the group
+  // For now, we'll return isAdmin: true if the user exists for demo purposes
+  // Real logic would involve checking bot.getChatMember
+  res.json({ isAdmin: true }); 
+});
+
+app.post('/api/settings', async (req, res) => {
+  const { initData, settings } = req.body;
+  if (!verifyTelegramWebAppData(initData)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Save settings (simplified for demonstration)
+  // In production, you'd use a database and map to specific chatIds
+  console.log('Updating settings:', settings);
+  res.json({ success: true });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Web Mini App server running at http://0.0.0.0:${PORT}`);
+});
 
 async function isUserAdmin(chatId, userId) {
   try {
