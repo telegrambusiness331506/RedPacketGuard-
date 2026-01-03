@@ -69,10 +69,10 @@ function renderPublicView() {
         <div class="section">
             <h2><i data-lucide="plus-circle"></i> Add Me To Your Chat</h2>
             <div class="card" style="display: flex; flex-direction: column; gap: 12px; border: none; background: transparent; padding: 0;">
-                <button class="btn" style="margin-top: 0; width: 100%;" onclick="window.open('https://t.me/${botUsername}?startgroup=true&admin=delete_messages')">
+                <button class="btn" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages')">
                     <i data-lucide="users"></i> Add Me To Your Group
                 </button>
-                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="window.open('${newsChannelLink}')">
+                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('${newsChannelLink}')">
                     <i data-lucide="megaphone"></i> Bots Updated News
                 </button>
             </div>
