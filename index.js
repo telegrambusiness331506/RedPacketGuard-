@@ -308,11 +308,16 @@ bot.on('message', async (msg) => {
     const botUser = await bot.getMe();
     const startMsg = `🛡️ *Red Packet Guard*\n\nI monitor your groups and remove spam messages. Only 8 or 10 character alphanumeric codes are allowed.\n\nUse /help to see rules and configuration.`;
     
+    // Add specific admin permissions (delete messages, restrict members)
+    const addToGroupUrl = `https://t.me/${botUser.username}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users`;
+    const webAppUrl = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+
     await bot.sendMessage(chatId, startMsg, {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '➕ Add to Group', url: `https://t.me/${botUser.username}?startgroup=true` }],
+          [{ text: '➕ Add to Group', url: addToGroupUrl }],
+          [{ text: '⚙️ Configure via Mini App', web_app: { url: webAppUrl } }],
           [{ text: '🛡️ Privacy Policy', callback_data: 'privacy_policy' }]
         ]
       }
@@ -375,6 +380,20 @@ bot.on('message', async (msg) => {
         console.error('Error in filter:', error.message);
       }
     }
+  }
+});
+
+bot.on('new_chat_members', async (msg) => {
+  const chatId = msg.chat.id;
+  const botMe = await bot.getMe();
+  const isBotAdded = msg.new_chat_members.some(member => member.id === botMe.id);
+
+  if (isBotAdded) {
+    const welcomeMsg = `🛡️ *Red Packet Guard Activated!* \n\nI am ready to protect this group. Only 8 or 10 character alphanumeric messages are allowed. \n\n⚠️ *Action Required:* Please ensure I have 'Delete Messages' and 'Ban Users' permissions.`;
+    await bot.sendMessage(chatId, welcomeMsg, {
+      parse_mode: 'Markdown',
+      reply_markup: getHelpKeyboard(chatId)
+    });
   }
 });
 
