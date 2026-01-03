@@ -36,3 +36,7 @@ run = ["node", "index.js"]
 
 [userenv.shared]
 BOT_TOKEN = "8580901618:AAFdT6-iTeg3av1gO5tpX38ZFUHyoOH429g"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

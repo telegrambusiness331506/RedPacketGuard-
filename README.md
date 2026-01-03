@@ -1,14 +1,16 @@
-# Telegram Numeric Filtering Bot
+# Red Packet Guard
 
-A simple Telegram bot that monitors group chats and only allows messages containing exactly 8 or 10 digits. All other content (text, stickers, images, etc.) is automatically and silently deleted.
+## Bot Features
+- Filters alphanumeric codes (8 or 10 chars).
+- Deletes non-compliant messages.
+- Automatic Time Out and Ban system.
+
+## Web Mini App
+The bot includes a Web Mini App panel for:
+- Viewing bot rules and privacy policy (Public).
+- Managing ban and timeout limits (Admin only).
 
 ## Setup
-
-1. Get a bot token from [@BotFather](https://t.env/BotFather).
-2. Add the bot to your group.
-3. Promote the bot to **Admin** with **Delete Messages** permission.
-4. Set the `TELEGRAM_BOT_TOKEN` environment variable.
-
-## Deployment
-
-This bot is designed to run 24/7. It can be deployed to platforms like Render or hosted on Replit.
+1. Set `TELEGRAM_BOT_TOKEN` in secrets.
+2. Run `npm install`.
+3. Start with `node index.js`.
