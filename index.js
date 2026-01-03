@@ -139,9 +139,10 @@ No data is sold or shared. All processing is automated.`;
     configSessions.set(userId, { step: 'choose_group', action: configAction });
     
     if (msg.chat.type !== 'private') {
+      const botMe = await bot.getMe();
       await bot.sendMessage(chatId, "Please continue configuration in private chat for security.", {
         reply_markup: {
-          inline_keyboard: [[{ text: 'Go to Private Chat', url: `https://t.me/${(await bot.getMe()).username}?start=config` }]]
+          inline_keyboard: [[{ text: 'Go to Private Chat', url: `https://t.me/${botMe.username}?start=config` }]]
         }
       });
       return;
@@ -302,7 +303,7 @@ No data is sold or shared. All processing is automated.`;
 
     const settings = groupSettings.get(chatId.toString()) || { timeoutLimit: 2, banLimit: 10 };
     const user = msg.from;
-    const name = user.username ? \`@\${user.username}\` : (user.first_name + (user.last_name ? \` \${user.last_name}\` : ''));
+    const name = user.username ? `@${user.username}` : (user.first_name + (user.last_name ? ` ${user.last_name}` : ''));
     let shouldDelete = false;
 
     if (!text) {
@@ -323,15 +324,15 @@ No data is sold or shared. All processing is automated.`;
 
         if (userSpam.count >= settings.banLimit) {
           await bot.banChatMember(chatId, userId);
-          const banMsg = await bot.sendMessage(chatId, \`🚫 \${name} has been banned for excessive spamming (\${settings.banLimit}+ violations).\`);
+          const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned for excessive spamming (${settings.banLimit}+ violations).`);
           setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
         } else if (userSpam.count >= settings.timeoutLimit) {
           const untilDate = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
           await bot.restrictChatMember(chatId, userId, { until_date: untilDate, can_send_messages: false });
-          const timeoutMsg = await bot.sendMessage(chatId, \`⏳ Warning \${name}!\n\nYou have been timed out for 24 hours due to spamming.\n\nDon't Spam Anything Else Only Send Red Packet Codes.\`);
+          const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for 24 hours due to spamming.\n\nDon't Spam Anything Else Only Send Red Packet Codes.`);
           setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
         } else {
-          const warningMsg = await bot.sendMessage(chatId, \`⚠️ Warning \${name}!\n\nDon't Spam Anything Else Only Send Red Packet Codes.\`);
+          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nDon't Spam Anything Else Only Send Red Packet Codes.`);
           setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
         }
       } catch (error) {
