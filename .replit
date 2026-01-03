@@ -35,4 +35,4 @@ run = ["node", "index.js"]
 [userenv]
 
 [userenv.shared]
-BOT_TOKEN = "PLACEHOLDER_FOR_USER_SECRET"
+BOT_TOKEN = "8580901618:AAFdT6-iTeg3av1gO5tpX38ZFUHyoOH429g"
