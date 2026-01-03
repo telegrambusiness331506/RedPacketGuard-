@@ -195,5 +195,14 @@ No data is sold or shared. All processing is automated.`;
 
 // Basic error handling for polling
 bot.on('polling_error', (error) => {
-  console.error('Polling error:', error.code);
+  // ETELEGRAM often means multiple instances are running with the same token
+  // or there's a temporary network issue. We log the full error for better debugging.
+  if (error.code === 'ETELEGRAM') {
+    console.error('Telegram API Error (ETELEGRAM):', error.message);
+    if (error.message.includes('409 Conflict')) {
+      console.error('CRITICAL: Conflict detected. Another instance of the bot is likely running with this token.');
+    }
+  } else {
+    console.error('Polling error:', error.code, error.message);
+  }
 });
