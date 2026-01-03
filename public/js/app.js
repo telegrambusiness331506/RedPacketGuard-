@@ -63,16 +63,17 @@ function renderPublicView() {
     elements.backBtn.classList.add('hidden');
 
     const botUsername = 'RedPacketGuardBot'; // In production, get this from bot.getMe() or via API
+    const newsChannelLink = 'https://t.me/RedPacketGuardNews'; // Replace with actual news channel link
 
     let html = `
         <div class="section">
-            <h2><i data-lucide="plus-circle"></i> Add Me</h2>
-            <div class="card" style="display: flex; gap: 12px; border: none; background: transparent; padding: 0;">
-                <button class="btn" style="margin-top: 0; flex: 1;" onclick="window.open('https://t.me/${botUsername}?startgroup=true')">
-                    <i data-lucide="users"></i> Add to Group
+            <h2><i data-lucide="plus-circle"></i> Add Me To Your Chat</h2>
+            <div class="card" style="display: flex; flex-direction: column; gap: 12px; border: none; background: transparent; padding: 0;">
+                <button class="btn" style="margin-top: 0; width: 100%;" onclick="window.open('https://t.me/${botUsername}?startgroup=true')">
+                    <i data-lucide="users"></i> Add Me To Your Group
                 </button>
-                <button class="btn btn-secondary" style="margin-top: 0; flex: 1;" onclick="window.open('https://t.me/${botUsername}?startchannel=true')">
-                    <i data-lucide="megaphone"></i> Add to Channel
+                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="window.open('${newsChannelLink}')">
+                    <i data-lucide="megaphone"></i> Bots Updated News
                 </button>
             </div>
         </div>
