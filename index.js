@@ -1,10 +1,11 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+// BOT_TOKEN is used for Render/Production environment
+const token = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 
 if (!token) {
-  console.error('Error: TELEGRAM_BOT_TOKEN is not defined in environment variables.');
+  console.error('Error: BOT_TOKEN is not defined in environment variables.');
   process.exit(1);
 }
 
@@ -63,7 +64,7 @@ bot.on('message', async (msg) => {
     const botUser = await bot.getMe();
     const botUsername = botUser.username;
     
-    const startMsg = `🌹 *Hey there! My name is Rose* - I'm here to help you manage your groups! Use /help to find out how to use me to my full potential.\n\n📢 *Join my news channel* to get information on all the latest updates.\n\n🛡️ *Check /privacy* to view the privacy policy, and interact with your data.`;
+    const startMsg = `🛡️ *Hey there! My name is Red Packet Guard* - I'm here to help you manage your groups! Use /help to find out how to use me to my full potential.\n\n📢 *Join my news channel* to get information on all the latest updates.\n\n🛡️ *Check /privacy* to view the privacy policy, and interact with your data.`;
     
     await bot.sendMessage(chatId, startMsg, {
       parse_mode: 'Markdown',
