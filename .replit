@@ -15,15 +15,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Telegram Bot"
+args = "Bot Controller"
 
 [[workflows.workflow]]
-name = "Telegram Bot"
+name = "Bot Controller"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node index.js"
+args = "echo \"Bot is currently stopped on Replit to allow the Render instance to run without 409 Conflict errors. To restart, use 'node index.js'.\""
 
 [workflows.workflow.metadata]
 outputType = "console"
