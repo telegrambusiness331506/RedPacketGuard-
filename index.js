@@ -51,22 +51,26 @@ app.post('/api/check-permission', async (req, res) => {
 
   const urlParams = new URLSearchParams(initData);
   const user = JSON.parse(urlParams.get('user'));
-  const chatInstance = urlParams.get('chat_instance');
-  const chatType = urlParams.get('chat_type');
+  const chat = urlParams.get('chat');
   
   let groupName = 'Current Group';
-  let groupId = null;
+  let isBotAdmin = false;
 
-  // In a Mini App, if launched from a group, we can sometimes get the chat context
-  // This is a simplified version for the request
-  if (chatType === 'group' || chatType === 'supergroup') {
-    groupName = 'This Group';
+  if (chat) {
+    try {
+      const chatData = JSON.parse(chat);
+      groupName = chatData.title || groupName;
+      const botMember = await bot.getChatMember(chatData.id, (await bot.getMe()).id);
+      isBotAdmin = ['administrator', 'creator'].includes(botMember.status);
+    } catch (e) {
+      console.error('Error getting chat info:', e);
+    }
   }
   
   res.json({ 
     isAdmin: true,
     groupName: groupName,
-    groupId: groupId
+    isBotAdmin: isBotAdmin
   }); 
 });
 

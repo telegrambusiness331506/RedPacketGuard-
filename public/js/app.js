@@ -50,6 +50,7 @@ async function checkPermissions() {
         const data = await response.json();
         state.isAdmin = data.isAdmin;
         state.groupName = data.groupName || 'Current Group';
+        state.isBotAdmin = data.isBotAdmin;
         renderPublicView();
     } catch (e) {
         console.error(e);
@@ -173,11 +174,18 @@ function renderAdminView() {
     elements.pageTitle.textContent = 'Admin Settings';
     elements.backBtn.classList.remove('hidden');
 
+    const adminStatusHtml = state.isBotAdmin 
+        ? `<span class="status-badge status-admin"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> Bot is Admin</span>`
+        : `<span class="status-badge status-public" style="background:#ffebee; color:#c62828;"><i data-lucide="alert-circle" style="width:12px; height:12px;"></i> Bot NOT Admin</span>`;
+
     elements.content.innerHTML = `
         <div class="section">
             <h2><i data-lucide="sliders"></i> Group Configuration</h2>
             <div class="card">
-                <label for="group-select"><i data-lucide="users"></i> Active Group</label>
+                <label for="group-select" style="justify-content: space-between;">
+                    <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="users"></i> Active Group</span>
+                    ${adminStatusHtml}
+                </label>
                 <select id="group-select" style="margin-bottom:20px;">
                     <option value="default">${state.groupName}</option>
                 </select>
