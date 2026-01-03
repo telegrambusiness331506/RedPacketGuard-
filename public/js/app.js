@@ -59,50 +59,77 @@ async function checkPermissions() {
 function renderPublicView() {
     state.view = 'public';
     elements.pageTitle.textContent = 'Bot Information';
+    elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
     let html = `
         <div class="section">
-            <h2>About Red Packet Guard</h2>
+            <h2><i data-lucide="info"></i> About Red Packet Guard</h2>
             <div class="card">
-                <p><strong>Bot Name:</strong> Red Packet Guard</p>
-                <p>Monitors groups to filter and remove unauthorized Red Packet codes, ensuring only valid messages pass through.</p>
+                <div class="card-item">
+                    <div class="icon-wrapper"><i data-lucide="shield"></i></div>
+                    <div>
+                        <strong>Bot Name:</strong>
+                        <p style="margin: 4px 0 0 0;">Red Packet Guard</p>
+                    </div>
+                </div>
+                <p style="margin: 12px 0 0 0; font-size: 14px; color: var(--tg-theme-hint-color);">Monitors groups to filter and remove unauthorized Red Packet codes, ensuring only valid messages pass through.</p>
             </div>
         </div>
 
         <div class="section">
-            <h2>Message Rules</h2>
+            <h2><i data-lucide="list-checks"></i> Message Rules</h2>
             <div class="card">
-                <ul>
-                    <li>Text only messages</li>
-                    <li>A–Z and 0–9 characters only</li>
-                    <li>Exactly 8 or 10 characters long</li>
-                </ul>
+                <div class="card-item">
+                    <div class="icon-wrapper"><i data-lucide="type"></i></div>
+                    <span>Text only messages</span>
+                </div>
+                <div class="card-item">
+                    <div class="icon-wrapper"><i data-lucide="regex"></i></div>
+                    <span>A–Z and 0–9 characters only</span>
+                </div>
+                <div class="card-item">
+                    <div class="icon-wrapper"><i data-lucide="ruler"></i></div>
+                    <span>Exactly 8 or 10 characters long</span>
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Enforcement System</h2>
+            <h2><i data-lucide="gavel"></i> Enforcement System</h2>
             <div class="card">
-                <p><strong>Time Out:</strong> Temporary restriction for repeat violations.</p>
-                <p><strong>Ban:</strong> Permanent removal for excessive spamming.</p>
+                <div class="card-item">
+                    <div class="icon-wrapper" style="color: #f59e0b;"><i data-lucide="clock"></i></div>
+                    <div>
+                        <strong>Time Out:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px;">Temporary restriction for repeat violations.</p>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="ban"></i></div>
+                    <div>
+                        <strong>Ban:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px;">Permanent removal for excessive spamming.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Privacy & Help</h2>
+            <h2><i data-lucide="help-circle"></i> Privacy & Help</h2>
             <div class="card">
-                <p>We do not store personal data. Only user IDs are used for enforcement.</p>
-                <p>For support, contact the group administrator.</p>
+                <p style="font-size: 14px; margin: 0 0 12px 0;">We do not store personal data. Only user IDs are used for enforcement.</p>
+                <p style="font-size: 14px; margin: 0;">For support, contact the group administrator.</p>
             </div>
         </div>
     `;
 
     if (state.isAdmin) {
-        html += `<button class="btn" onclick="renderAdminView()">Admin Controls</button>`;
+        html += `<button class="btn" onclick="renderAdminView()"><i data-lucide="settings"></i> Admin Controls</button>`;
     }
 
     elements.content.innerHTML = html;
+    lucide.createIcons();
 }
 
 function renderAdminView() {
@@ -112,27 +139,27 @@ function renderAdminView() {
 
     elements.content.innerHTML = `
         <div class="section">
-            <h2>Group Configuration</h2>
+            <h2><i data-lucide="sliders"></i> Group Configuration</h2>
             <div class="card">
-                <label for="group-select">Active Group</label>
-                <select id="group-select" style="width:100%; padding:10px; border-radius:8px; margin-bottom:15px;">
+                <label for="group-select"><i data-lucide="users"></i> Active Group</label>
+                <select id="group-select" style="margin-bottom:20px;">
                     <option value="default">Current Group</option>
                 </select>
                 
-                <label for="ban-limit">Ban Spamming Limit (1-100)</label>
-                <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100">
+                <label for="ban-limit"><i data-lucide="user-x" style="color: #ef4444;"></i> Ban Spamming Limit</label>
+                <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100" style="margin-bottom:20px;">
                 
-                <p style="margin-top:15px;"></p>
-
-                <label for="timeout-limit">Time Out Spamming Limit (1-100)</label>
-                <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100">
+                <label for="timeout-limit"><i data-lucide="timer" style="color: #f59e0b;"></i> Time Out Spamming Limit</label>
+                <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100" style="margin-bottom:24px;">
                 
-                <button class="btn" id="save-settings">Save Settings</button>
+                <button class="btn" id="save-settings"><i data-lucide="save"></i> Save Settings</button>
+                <button class="btn btn-secondary" onclick="renderPublicView()" style="margin-top:12px;"><i data-lucide="x"></i> Cancel</button>
             </div>
         </div>
     `;
 
     document.getElementById('save-settings').onclick = saveSettings;
+    lucide.createIcons();
 }
 
 async function saveSettings() {
