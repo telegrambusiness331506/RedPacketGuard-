@@ -144,11 +144,52 @@ main {
     display: none !important;
 }
 
-.admin-grid {
+.segmented-control {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-bottom: 100px;
+    background: var(--tg-theme-secondary-bg-color);
+    padding: 2px;
+    border-radius: 8px;
+    gap: 2px;
+}
+
+.segment-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--tg-theme-text-color);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.segment-btn.active {
+    background: var(--tg-theme-bg-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-weight: bold;
+}
+
+.rule-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.btn-save-rule {
+    background: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-button-color);
+    font-size: 13px;
+    padding: 10px;
+    margin-top: 8px;
+    box-shadow: none;
+    border: 1px solid var(--tg-theme-button-color);
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
 }
 
 .card-rule {

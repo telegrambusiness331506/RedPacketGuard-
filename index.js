@@ -340,14 +340,15 @@ bot.on('message', async (msg) => {
         if (!settings.spamControlEnabled) return;
 
         // Custom duration parser
-        const parseDuration = (dur) => {
-          if (!dur) return 24 * 60 * 60; // default 24h
-          const unit = dur.slice(-1);
-          const val = parseInt(dur);
+        const parseDuration = (dur, custom) => {
+          const finalDur = dur === 'custom' ? custom : dur;
+          if (!finalDur) return 24 * 60 * 60; // default 24h
+          const unit = finalDur.slice(-1);
+          const val = parseInt(finalDur);
           if (unit === 'm') return val * 60;
           if (unit === 'h') return val * 60 * 60;
           if (unit === 'd') return val * 24 * 60 * 60;
-          return val; // assumed seconds
+          return isNaN(val) ? 24 * 60 * 60 : val * 24 * 60 * 60; // default to days if no unit
         };
 
         let userSpam = spamTracker.get(userId) || { count: 0, lastSpam: 0 };
@@ -356,21 +357,23 @@ bot.on('message', async (msg) => {
         spamTracker.set(userId, userSpam);
 
         if (settings.banEnabled !== false && userSpam.count >= settings.banLimit) {
-          const banDur = settings.banType === 'permanent' ? 0 : parseDuration(settings.banDuration || '7d');
-          const banUntil = banDur === 0 ? 0 : Math.floor(Date.now() / 1000) + banDur;
+          const banDurSeconds = settings.banType === 'permanent' ? 0 : parseDuration(settings.banDuration, settings.banCustomValue);
+          const banUntil = banDurSeconds === 0 ? 0 : Math.floor(Date.now() / 1000) + banDurSeconds;
           await bot.banChatMember(chatId, userId, { until_date: banUntil });
           
           if (settings.banNotify !== false) {
-            const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned ${settings.banType === 'permanent' ? 'permanently' : 'for ' + (settings.banDuration || '7d')} due to excessive violations.`);
+            const displayDur = settings.banType === 'permanent' ? 'permanently' : 'for ' + (settings.banDuration === 'custom' ? settings.banCustomValue : settings.banDuration);
+            const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned ${displayDur} due to excessive violations.`);
             setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
           }
         } else if (settings.timeoutEnabled !== false && userSpam.count >= settings.timeoutLimit) {
-          const timeoutDur = parseDuration(settings.timeoutDuration || '24h');
-          const untilDate = Math.floor(Date.now() / 1000) + timeoutDur;
+          const timeoutDurSeconds = parseDuration(settings.timeoutDuration, settings.timeoutCustomValue);
+          const untilDate = Math.floor(Date.now() / 1000) + timeoutDurSeconds;
           await bot.restrictChatMember(chatId, userId, { until_date: untilDate, can_send_messages: false });
           
           if (settings.timeoutNotify !== false) {
-            const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for ${settings.timeoutDuration || '24h'} due to violations.`);
+            const displayDur = settings.timeoutDuration === 'custom' ? settings.timeoutCustomValue : settings.timeoutDuration;
+            const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for ${displayDur} due to violations.`);
             setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
           }
         } else {
