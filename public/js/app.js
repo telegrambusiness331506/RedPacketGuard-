@@ -192,11 +192,23 @@ function renderAdminView() {
                     <option value="default">${state.groupName}</option>
                 </select>
                 
-                <label for="ban-limit"><i data-lucide="user-x" style="color: #ef4444;"></i> Ban Spamming Limit</label>
-                <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100" style="margin-bottom:20px;">
+                <div class="card" style="padding: 12px; margin-bottom: 20px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
+                    <label for="ban-limit"><i data-lucide="user-x" style="color: #ef4444;"></i> Ban Spamming Limit</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100">
+                        <button class="btn" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('ban-limit', 1)"><i data-lucide="plus"></i></button>
+                        <button class="btn btn-secondary" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('ban-limit', -1)"><i data-lucide="minus"></i></button>
+                    </div>
+                </div>
                 
-                <label for="timeout-limit"><i data-lucide="timer" style="color: #f59e0b;"></i> Time Out Spamming Limit</label>
-                <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100" style="margin-bottom:24px;">
+                <div class="card" style="padding: 12px; margin-bottom: 24px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
+                    <label for="timeout-limit"><i data-lucide="timer" style="color: #f59e0b;"></i> Time Out Spamming Limit</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100">
+                        <button class="btn" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('timeout-limit', 1)"><i data-lucide="plus"></i></button>
+                        <button class="btn btn-secondary" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('timeout-limit', -1)"><i data-lucide="minus"></i></button>
+                    </div>
+                </div>
                 
                 <button class="btn" id="save-settings"><i data-lucide="save"></i> Save Settings</button>
                 <button class="btn btn-secondary" onclick="renderPublicView()" style="margin-top:12px;"><i data-lucide="x"></i> Cancel</button>
@@ -206,6 +218,13 @@ function renderAdminView() {
 
     document.getElementById('save-settings').onclick = saveSettings;
     lucide.createIcons();
+}
+
+function adjustLimit(id, delta) {
+    const input = document.getElementById(id);
+    let val = parseInt(input.value) || 0;
+    val = Math.max(1, Math.min(100, val + delta));
+    input.value = val;
 }
 
 async function saveSettings() {
