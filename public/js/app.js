@@ -57,6 +57,7 @@ async function checkPermissions() {
         state.isAdmin = data.isAdmin;
         state.groupName = data.groupName || 'Current Group';
         state.isBotAdmin = data.isBotAdmin;
+        state.availableGroups = data.groups || [];
         if (data.settings) {
             state.settings = { ...state.settings, ...data.settings };
         }
@@ -87,12 +88,29 @@ function renderPublicView() {
         </div>
 
         <div class="section">
+            <h2><i data-lucide="list"></i> Select Group to Configure</h2>
+            <div class="card" style="padding: 12px;">
+                ${state.availableGroups.length > 0 ? `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${state.availableGroups.map(group => `
+                            <button class="btn btn-secondary" style="margin: 0; justify-content: flex-start;" onclick="selectGroup('${group.id}', '${group.title}')">
+                                <i data-lucide="message-square"></i> ${group.title}
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <p style="text-align: center; color: var(--tg-theme-hint-color); font-size: 14px;">No groups added yet. Add the bot to a group first.</p>
+                `}
+            </div>
+        </div>
+
+        <div class="section">
             <h2><i data-lucide="gavel"></i> User Enforcement Panel</h2>
             <div class="card" style="padding: 0; border: none; background: transparent;">
-                <button class="btn" onclick="renderAdminView()" style="margin-top: 0;">
-                    <i data-lucide="settings"></i> Configure Enforcement Rules
+                <button class="btn" onclick="renderAdminView()" style="margin-top: 0;" ${!state.currentGroupId ? 'disabled' : ''}>
+                    <i data-lucide="settings"></i> Configure ${state.groupName || 'Enforcement Rules'}
                 </button>
-                <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">Set timeout, ban, and spam rules for this group.</p>
+                ${!state.currentGroupId ? '<p style="margin: 8px 0 0 0; font-size: 12px; color: #ef4444; text-align: center;">Please select a group first</p>' : ''}
             </div>
         </div>
 
@@ -270,6 +288,31 @@ window.setBanType = (val) => {
 window.setSpamAction = (val) => {
     state.settings.spamAction = val;
     renderAdminView();
+};
+
+window.selectGroup = async (id, title) => {
+    state.currentGroupId = id;
+    state.groupName = title;
+    showToast(`Selected group: ${title}`);
+    
+    // Fetch settings for this group
+    try {
+        const response = await fetch('/api/check-permission', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                initData: tg.initData,
+                chatId: id 
+            })
+        });
+        const data = await response.json();
+        if (data.settings) {
+            state.settings = { ...state.settings, ...data.settings };
+        }
+        renderPublicView();
+    } catch (e) {
+        console.error(e);
+    }
 };
 
 window.saveSubRule = (ruleName) => {

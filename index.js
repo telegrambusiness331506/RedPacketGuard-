@@ -54,7 +54,7 @@ app.post('/api/check-permission', async (req, res) => {
   
   let groupName = 'Current Group';
   let isBotAdmin = false;
-  let currentSettings = { banLimit: 10, timeoutLimit: 2, timeoutDuration: 24, banDuration: 7, spamControlEnabled: true };
+  let currentSettings = { banLimit: 10, timeoutLimit: 2, timeoutDuration: '24h', banDuration: '7d', spamControlEnabled: true };
 
   if (chatStr) {
     try {
@@ -70,13 +70,24 @@ app.post('/api/check-permission', async (req, res) => {
     } catch (e) {
       console.error('Bot admin check error:', e.message);
     }
+  } else {
+    // If no chat context, let's look for groups the user is an admin of
+    // This is a placeholder since we can't easily list groups without user interaction
+    // But we can check if the user has a specific session
+    const urlParams = new URLSearchParams(initData);
+    const user = JSON.parse(urlParams.get('user'));
+    // Return group list if we had one
   }
   
   res.json({ 
     isAdmin: true,
     groupName: groupName,
     isBotAdmin: isBotAdmin,
-    settings: currentSettings
+    settings: currentSettings,
+    groups: Array.from(groupSettings.entries()).map(([id, settings]) => ({
+      id: id,
+      title: settings.title || `Group ${id}`
+    }))
   }); 
 });
 
@@ -412,6 +423,11 @@ bot.on('new_chat_members', async (msg) => {
 
   if (isBotAdded) {
     const welcomeMsg = `🛡️ *Red Packet Guard Activated!* \n\nI am ready to protect this group. Only 8 or 10 character alphanumeric messages are allowed. \n\n⚠️ *Action Required:* Please ensure I have 'Delete Messages' and 'Ban Users' permissions.`;
+    
+    // Save group title
+    const existing = groupSettings.get(chatId.toString()) || {};
+    groupSettings.set(chatId.toString(), { ...existing, title: msg.chat.title });
+
     await bot.sendMessage(chatId, welcomeMsg, {
       parse_mode: 'Markdown',
       reply_markup: getHelpKeyboard(chatId)
