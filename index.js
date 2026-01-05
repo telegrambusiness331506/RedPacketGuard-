@@ -499,6 +499,15 @@ bot.on('message', async (msg) => {
 
     if (shouldDelete) {
       try {
+        // Exempt commands from being deleted ONLY if they are from an admin
+        const isCommand = text && text.startsWith('/');
+        if (isCommand && !isAdmin) {
+          await bot.deleteMessage(chatId, msg.message_id);
+          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nCommands are not allowed. Only 8 or 10 character alphanumeric codes.`);
+          setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
+          return;
+        }
+
         await bot.deleteMessage(chatId, msg.message_id);
         
         if (settings.spamControlEnabled === false) return;
