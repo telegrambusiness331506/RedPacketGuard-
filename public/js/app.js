@@ -15,7 +15,8 @@ const state = {
         spamWindow: 10,
         spamAction: 'warning'
     },
-    currentGroupId: null
+    currentGroupId: null,
+    availableGroups: []
 };
 
 const elements = {
