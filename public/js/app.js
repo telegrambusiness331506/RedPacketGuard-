@@ -73,7 +73,7 @@ function renderPublicView() {
     elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
-    const botUsername = 'RedPacketGuardBot'; 
+    const botUsername = 'RedPacketGuard_Bot'; 
     
     let html = `
         <div class="section">
