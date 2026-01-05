@@ -29,7 +29,12 @@ Preferred communication style: Simple, everyday language.
    - Must be text (no stickers, images, or other media)
    - Must be alphanumeric only (a-z, A-Z, 0-9)
    - Length must be exactly 8 or 10 characters
-4. Messages failing validation are deleted silently
+4. Violation Flow:
+   - **Warning**: User is notified of the violation.
+   - **Time Out**: User is restricted from sending messages after 3 violations (default).
+   - **Ban**: User is banned from the group after 5 violations (default).
+5. Admins can configure these limits and manage specific groups via the Telegram Mini App.
+6. Groups are automatically tracked and can be selected from a choice option in the web panel.
 
 ### Configuration Management
 - **Library**: `dotenv` for loading environment variables from `.env` files

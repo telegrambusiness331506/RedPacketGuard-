@@ -119,23 +119,28 @@ async function isUserAdmin(chatId, userId) {
 }
 
 function getHelpMessage(chatId) {
-  const settings = groupSettings.get(chatId.toString()) || { timeoutLimit: 2, banLimit: 10 };
-  return `🛡️ *Red Packet Guard – Help & Rules*
+  const defaultSettings = { timeoutLimit: 3, banLimit: 5 };
+  const savedSettings = groupSettings.get(chatId.toString()) || {};
+  const settings = { ...defaultSettings, ...savedSettings };
+  
+  return `🛡️ *Red Packet Guard – How It Works*
 
-*Rules:*
+I monitor this group to keep it safe from spam. Here are the rules I enforce:
+
+*Validation Rules:*
 • Only messages with *exactly 8 or 10 characters* are allowed.
-• Content must be *alphanumeric* (A-Z, 0-9).
-• All other messages (stickers, media, links, invalid length) will be *deleted*.
+• Content must be *alphanumeric* (A-Z, 0-9) only.
+• Non-text messages (stickers, media, links, etc.) are automatically deleted.
 
-*Enforcement Status:*
-• 🟡 *Time Out:* Triggered after *${settings.timeoutLimit}* violations.
-• 🔴 *Ban:* Triggered after *${settings.banLimit}* violations.
+*Enforcement Flow:*
+1. ⚠️ *Warning:* Sent for violations until the limit is reached.
+2. ⏳ *Time Out:* Triggered after *${settings.timeoutLimit}* violations.
+3. 🚫 *Ban:* Triggered after *${settings.banLimit}* violations.
 
-*How it works:*
-• *Time Out:* User is muted for 24 hours.
-• *Ban:* User is permanently removed from the group.
+*Configuration:*
+Admins can select this group in the Mini App to change these limits or toggle rules.
 
-⚠️ *Admins Only:* Use the buttons below to change these limits.`;
+📢 *Updates:* [✨ Updated News](https://t.me/BotsUpdatedNews)`;
 }
 
 function getHelpKeyboard(chatId = null) {
