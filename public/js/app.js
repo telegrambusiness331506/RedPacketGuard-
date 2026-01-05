@@ -270,13 +270,11 @@ function renderAdminView() {
         <div class="sticky-footer">
             <button class="btn" id="save-all" style="flex: 2;">Save All Rules</button>
             <button class="btn btn-secondary" id="reset-rules" style="flex: 1;">Reset</button>
-            <button class="btn btn-secondary" id="test-btn" style="flex: 1;">Test</button>
         </div>
     `;
 
     document.getElementById('save-all').onclick = saveAllSettings;
     document.getElementById('reset-rules').onclick = resetSettings;
-    document.getElementById('test-btn').onclick = () => showToast('Simulating user violation...');
     lucide.createIcons();
 }
 

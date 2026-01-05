@@ -36,7 +36,7 @@ run = ["node", "index.js"]
 
 [userenv.shared]
 BOT_TOKEN = "8580901618:AAFdT6-iTeg3av1gO5tpX38ZFUHyoOH429g"
-WEB_APP_URL = "https://93da02dc-959a-4207-bd69-f555b9d481ae-00-3nock9lhwq9ci.sisko.replit.dev"
+WEB_APP_URL = "https://8b74528d-21b7-499e-9a45-878aecb409f3-00-2xew5l28g92ni.pike.replit.dev"
 
 [[ports]]
 localPort = 5000
