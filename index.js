@@ -207,8 +207,11 @@ Settings-based (Defaults: 2 for Timeout, 10 for Ban).
 *Exemptions:*
 Admins and Owners are exempt from all rules.
 
-No data is sold or shared. All processing is automated.`;
-    await bot.sendMessage(chatId, privacyPolicy, { parse_mode: 'Markdown' });
+No data is sold or shared. All processing is automated.
+
+📢 *Stay Updated:*
+[Updated News](https://t.me/BotsUpdatedNews)`;
+    await bot.sendMessage(chatId, privacyPolicy, { parse_mode: 'Markdown', disable_web_page_preview: true });
   }
 
   if (action.startsWith('config_')) {
