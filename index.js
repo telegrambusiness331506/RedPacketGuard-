@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
+const axios = require('axios');
 
 const token = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 
@@ -145,7 +146,6 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 // Self-ping logic to keep the service alive if needed
-const axios = require('axios');
 const KEEP_ALIVE_URL = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/health`;
 
 setInterval(() => {
@@ -355,6 +355,7 @@ No data is sold or shared. All processing is automated.
     
     const addToGroupUrl = `https://t.me/${botUser.username}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages`;
     const webAppUrl = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    const finalWebAppUrl = webAppUrl.startsWith('http') ? webAppUrl : `https://${webAppUrl}`;
 
     await bot.editMessageText(startMsg, {
       chat_id: chatId,
@@ -363,11 +364,11 @@ No data is sold or shared. All processing is automated.
       reply_markup: {
         inline_keyboard: [
           [{ text: '➕ Add to Group', url: addToGroupUrl }],
-          [{ text: '⚙️ Configure via Mini App', web_app: { url: webAppUrl } }],
+          [{ text: '⚙️ Configure via Mini App', web_app: { url: finalWebAppUrl } }],
           [{ text: '🛡️ Privacy Policy', callback_data: 'privacy_policy' }]
         ]
       }
-    });
+    }).catch(err => console.error('Error sending start message:', err.message));
   }
 });
 
@@ -417,17 +418,18 @@ bot.on('message', async (msg) => {
     
     const addToGroupUrl = `https://t.me/${botUser.username}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages`;
     const webAppUrl = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+    const finalWebAppUrl = webAppUrl.startsWith('http') ? webAppUrl : `https://${webAppUrl}`;
 
     await bot.sendMessage(chatId, startMsg, {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [
           [{ text: '➕ Add to Group', url: addToGroupUrl }],
-          [{ text: '⚙️ Configure via Mini App', web_app: { url: webAppUrl } }],
+          [{ text: '⚙️ Configure via Mini App', web_app: { url: finalWebAppUrl } }],
           [{ text: '🛡️ Privacy Policy', callback_data: 'privacy_policy' }]
         ]
       }
-    });
+    }).catch(err => console.error('Error sending welcome message:', err.message));
     return;
   }
 
