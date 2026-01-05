@@ -159,7 +159,12 @@ function renderPublicView() {
             <h2><i data-lucide="help-circle"></i> Privacy & Help</h2>
             <div class="card">
                 <p style="font-size: 14px; margin: 0 0 12px 0;">We do not store personal data. Only user IDs are used for enforcement.</p>
-                <p style="font-size: 14px; margin: 0;">For support, contact the group administrator.</p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn btn-secondary" style="margin-top: 0; padding: 10px;" onclick="tg.openTelegramLink('https://t.me/RedPacketGuardSupport')">
+                        <i data-lucide="message-circle"></i> Contact Support
+                    </button>
+                    <p style="font-size: 12px; margin: 4px 0 0 0; color: var(--tg-theme-hint-color); text-align: center;">For assistance or bug reports</p>
+                </div>
             </div>
         </div>
     `;
