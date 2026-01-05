@@ -92,13 +92,12 @@ function renderPublicView() {
             <h2><i data-lucide="list"></i> Select Group to Configure</h2>
             <div class="card" style="padding: 12px;">
                 ${state.availableGroups.length > 0 ? `
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <select id="group-selector" class="tg-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--tg-theme-hint-color); background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color);" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
+                        <option value="">Select a group...</option>
                         ${state.availableGroups.map(group => `
-                            <button class="btn btn-secondary" style="margin: 0; justify-content: flex-start;" onclick="selectGroup('${group.id}', '${group.title}')">
-                                <i data-lucide="message-square"></i> ${group.title}
-                            </button>
+                            <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
                         `).join('')}
-                    </div>
+                    </select>
                 ` : `
                     <p style="text-align: center; color: var(--tg-theme-hint-color); font-size: 14px;">No groups added yet. Add the bot to a group first.</p>
                 `}

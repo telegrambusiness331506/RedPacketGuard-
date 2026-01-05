@@ -312,10 +312,11 @@ bot.on('message', async (msg) => {
       showLimitSelection(userId, chatId);
       return;
     }
+    
+    // Only send the welcome message if it's not a configuration session start
     const botUser = await bot.getMe();
     const startMsg = `🛡️ *Red Packet Guard*\n\nI monitor your groups and remove spam messages. Only 8 or 10 character alphanumeric codes are allowed.\n\nUse /help to see rules and configuration.`;
     
-    // Add specific admin permissions (delete messages, restrict members)
     const addToGroupUrl = `https://t.me/${botUser.username}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages`;
     const webAppUrl = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
 
@@ -346,6 +347,12 @@ bot.on('message', async (msg) => {
   }
 
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
+    // Save group title if we don't have it
+    const existing = groupSettings.get(chatId.toString()) || {};
+    if (!existing.title) {
+      groupSettings.set(chatId.toString(), { ...existing, title: msg.chat.title });
+    }
+
     const isAdmin = await isUserAdmin(chatId, userId);
     if (isAdmin) return;
 
