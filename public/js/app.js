@@ -105,6 +105,7 @@ function renderPublicView() {
                     <div>
                         <strong>Time Out:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.timeoutLimit}</strong> violations.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Custom support enabled</p>
                     </div>
                 </div>
                 <div class="card-item">
@@ -112,6 +113,7 @@ function renderPublicView() {
                     <div>
                         <strong>Ban:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Custom support enabled</p>
                     </div>
                 </div>
             </div>
