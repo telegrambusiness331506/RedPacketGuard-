@@ -68,6 +68,8 @@ app.post('/api/check-permission', async (req, res) => {
     groupName = chatData.title || groupName;
   }
 
+  console.log('Permission check for user:', user.id, 'on chat:', targetChatId);
+
   let isBotAdmin = false;
   let isUserAdminOfGroup = false;
   let currentSettings = { banLimit: 10, timeoutLimit: 2, timeoutDuration: '24h', banDuration: '7d', spamControlEnabled: true };
@@ -79,7 +81,8 @@ app.post('/api/check-permission', async (req, res) => {
       isBotAdmin = ['administrator', 'creator'].includes(botMember.status);
       
       const userMember = await bot.getChatMember(targetChatId, user.id);
-      isUserAdminOfGroup = ['administrator', 'creator'].includes(userMember.status);
+      console.log('User status in group:', userMember.status);
+      isUserAdminOfGroup = ['administrator', 'creator', 'owner'].includes(userMember.status);
       
       const saved = groupSettings.get(targetChatId.toString());
       if (saved) {
@@ -96,7 +99,7 @@ app.post('/api/check-permission', async (req, res) => {
   for (const [id, settings] of groupSettings.entries()) {
     try {
       const member = await bot.getChatMember(id, user.id);
-      if (['administrator', 'creator'].includes(member.status)) {
+      if (['administrator', 'creator', 'owner'].includes(member.status)) {
         userAdminGroups.push({ id, title: settings.title || `Group ${id}` });
       }
     } catch (e) {}
@@ -126,7 +129,7 @@ app.post('/api/settings', async (req, res) => {
 
   try {
     const member = await bot.getChatMember(chatId, user.id);
-    const isUserAdminOfGroup = ['administrator', 'creator'].includes(member.status);
+    const isUserAdminOfGroup = ['administrator', 'creator', 'owner'].includes(member.status);
     
     if (!isUserAdminOfGroup) {
       return res.status(403).json({ error: 'Forbidden: Admin access required' });
