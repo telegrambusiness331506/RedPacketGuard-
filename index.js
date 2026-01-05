@@ -20,8 +20,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const spamTracker = new Map();
-const groupSettings = new Map();
+const groupSettings = new Map(); // chat_id -> { timeoutLimit, banLimit, timeoutDuration, banDuration, warningLimit }
+const spamTracker = new Map(); // user_id -> { count, lastSpam }
 const configSessions = new Map();
 
 // Helper to verify Telegram Web App data
