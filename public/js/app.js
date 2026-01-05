@@ -71,7 +71,7 @@ async function checkPermissions() {
 
 function renderPublicView() {
     state.view = 'public';
-    elements.pageTitle.textContent = 'Bot Information';
+    elements.pageTitle.textContent = 'Red Packet Guard';
     elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
@@ -79,67 +79,67 @@ function renderPublicView() {
     
     let html = `
         <div class="section">
-            <h2><i data-lucide="plus-circle"></i> Add Me To Your Chat</h2>
-            <div class="card" style="display: flex; flex-direction: column; gap: 12px; border: none; background: transparent; padding: 0;">
-                <button class="btn" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages')">
-                    <i data-lucide="users"></i> Add Me To Your Group
+            <h2><i data-lucide="plus-circle" class="icon-sm"></i> Add Me To Your Chat</h2>
+            <div class="card">
+                <p class="card-desc">Protect your group from spam and unauthorized codes.</p>
+                <button class="btn btn-primary" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages')">
+                    <i data-lucide="users"></i> Add Bot to Group
                 </button>
-                <p style="margin: -4px 0 8px 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">This Forward For Choice Group For Make Bot The Admin</p>
             </div>
         </div>
 
         <div class="section">
-            <h2><i data-lucide="list"></i> Select Group to Configure</h2>
-            <div class="card" style="padding: 12px;">
-                ${state.availableGroups.length > 0 ? `
-                    <div class="select-wrapper">
-                        <select id="group-selector" class="tg-select" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--tg-theme-hint-color); background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); font-size: 16px; appearance: none; -webkit-appearance: none;" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
-                            <option value="">Choose a group...</option>
-                            ${state.availableGroups.map(group => `
-                                <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
-                            `).join('')}
-                        </select>
-                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--tg-theme-hint-color);">
-                            <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                        </div>
+            <h2><i data-lucide="list" class="icon-sm"></i> Choice Group</h2>
+            <div class="card">
+                <div class="select-wrapper">
+                    <select id="group-selector" class="tg-select" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
+                        <option value="">Choose a group...</option>
+                        ${state.availableGroups.map(group => `
+                            <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
+                        `).join('')}
+                    </select>
+                    <div class="select-arrow">
+                        <i data-lucide="chevron-down"></i>
                     </div>
-                ` : `
-                    <p style="text-align: center; color: var(--tg-theme-hint-color); font-size: 14px;">No groups added yet. Add the bot to a group first.</p>
-                `}
+                </div>
+                <p class="hint-text">Select the group where you have administrator privileges.</p>
             </div>
         </div>
 
         <div class="section">
-            <h2><i data-lucide="gavel"></i> User Enforcement Panel</h2>
-            <div class="card" style="padding: 0; border: none; background: transparent;">
-                <button class="btn" onclick="renderAdminView()" style="margin-top: 0;" ${!state.currentGroupId ? 'disabled' : ''}>
-                    <i data-lucide="settings"></i> Configure ${state.currentGroupId ? state.groupName : 'Enforcement Rules'}
+            <h2><i data-lucide="shield" class="icon-sm"></i> Enforcement Panel</h2>
+            <div class="card">
+                <button class="btn ${!state.currentGroupId ? 'btn-disabled' : 'btn-primary'}" onclick="renderAdminView()" ${!state.currentGroupId ? 'disabled' : ''}>
+                    <i data-lucide="settings"></i> Configure Rules
                 </button>
-                ${!state.currentGroupId ? '<p style="margin: 8px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">Select a group from the options above to manage its settings.</p>' : ''}
+                ${!state.currentGroupId ? '<p class="error-text">Please select a group first</p>' : `<p class="success-text">Active: ${state.groupName}</p>`}
             </div>
         </div>
 
         <div class="section">
-            <h2><i data-lucide="info"></i> Current Rules</h2>
+            <h2><i data-lucide="info" class="icon-sm"></i> Current Rules</h2>
             <div class="card">
                 <div class="card-item">
-                    <div class="icon-wrapper" style="color: #f59e0b;"><i data-lucide="clock"></i></div>
-                    <div>
-                        <strong>Time Out:</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.timeoutLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Duration: ${state.settings.timeoutDuration === 'custom' ? state.settings.timeoutCustomValue : state.settings.timeoutDuration}</p>
+                    <div class="icon-circle warning"><i data-lucide="clock"></i></div>
+                    <div class="card-info">
+                        <strong>Time Out</strong>
+                        <span>After ${state.settings.timeoutLimit} violations</span>
                     </div>
                 </div>
                 <div class="card-item">
-                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="ban"></i></div>
-                    <div>
-                        <strong>Ban:</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Type: ${state.settings.banType} (${state.settings.banDuration === 'custom' ? state.settings.banCustomValue : state.settings.banDuration})</p>
+                    <div class="icon-circle error"><i data-lucide="ban"></i></div>
+                    <div class="card-info">
+                        <strong>Ban</strong>
+                        <span>After ${state.settings.banLimit} violations</span>
                     </div>
                 </div>
             </div>
         </div>
+    `;
+
+    elements.content.innerHTML = html;
+    lucide.createIcons();
+}
     `;
 
     elements.content.innerHTML = html;
