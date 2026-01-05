@@ -131,7 +131,7 @@ function renderPublicView() {
                     </div>
                 </div>
                 <div class="card-item">
-                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="ban"></i></div>
+                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="shield-off"></i></div>
                     <div>
                         <strong>Ban:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>

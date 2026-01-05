@@ -439,7 +439,7 @@ bot.on('message', async (msg) => {
           
           if (settings.banNotify !== false) {
             const displayDur = settings.banType === 'permanent' ? 'permanently' : 'for ' + (settings.banDuration === 'custom' ? settings.banCustomValue : settings.banDuration);
-            const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned ${displayDur} due to excessive violations.`);
+            const banMsg = await bot.sendMessage(chatId, `🚫 *User Banned*\n\n${name} has been banned ${displayDur} due to excessive violations.`, { parse_mode: 'Markdown' });
             setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
           }
           // Reset count after ban
