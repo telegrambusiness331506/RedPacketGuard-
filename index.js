@@ -20,27 +20,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const groupSettings = new Map(); // chat_id -> { timeoutLimit, banLimit, timeoutDuration, banDuration, warningLimit }
+const groupSettings = new Map(); // chat_id -> { timeoutLimit, banLimit, timeoutDuration, banDuration, warningLimit, spamControlEnabled }
 const spamTracker = new Map(); // user_id -> { count, lastSpam }
 const configSessions = new Map();
-
-// Helper to verify Telegram Web App data
-function verifyTelegramWebAppData(initData) {
-  if (!initData) return false;
-  const urlParams = new URLSearchParams(initData);
-  const hash = urlParams.get('hash');
-  urlParams.delete('hash');
-  
-  const dataCheckString = Array.from(urlParams.entries())
-    .map(([key, value]) => `${key}=${value}`)
-    .sort()
-    .join('\n');
-    
-  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(token).digest();
-  const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-  
-  return calculatedHash === hash;
-}
 
 // API Routes
 app.post('/api/check-permission', async (req, res) => {
@@ -50,51 +32,47 @@ app.post('/api/check-permission', async (req, res) => {
   }
 
   const urlParams = new URLSearchParams(initData);
-  const chat_instance = urlParams.get('chat_instance');
-  const chat_type = urlParams.get('chat_type');
+  const chatStr = urlParams.get('chat');
   
   let groupName = 'Current Group';
   let isBotAdmin = false;
+  let currentSettings = { banLimit: 10, timeoutLimit: 2, timeoutDuration: 24, banDuration: 7, spamControlEnabled: true };
 
-  // Telegram Mini Apps launched from groups provide a "chat" parameter in initData
-  // if the bot has "allow_sending_without_reply" or is configured to receive it.
-  // Alternatively, for modern Mini Apps, it's often passed via the start_param or direct context.
-  const chatStr = urlParams.get('chat');
-  
   if (chatStr) {
     try {
       const chatData = JSON.parse(chatStr);
       groupName = chatData.title || groupName;
       
-      // Real-time check via Bot API
       const botMe = await bot.getMe();
       const member = await bot.getChatMember(chatData.id, botMe.id);
       isBotAdmin = ['administrator', 'creator'].includes(member.status);
+      
+      const saved = groupSettings.get(chatData.id.toString());
+      if (saved) currentSettings = { ...currentSettings, ...saved };
     } catch (e) {
       console.error('Bot admin check error:', e.message);
     }
-  } else {
-    // Fallback: If no chat context is passed, we can't reliably check
-    // In a development environment, we might mock this or use a default
-    isBotAdmin = true; // Assume true for testing if we can't verify, or false to be safe
   }
   
   res.json({ 
     isAdmin: true,
     groupName: groupName,
-    isBotAdmin: isBotAdmin
+    isBotAdmin: isBotAdmin,
+    settings: currentSettings
   }); 
 });
 
 app.post('/api/settings', async (req, res) => {
-  const { initData, settings } = req.body;
+  const { initData, settings, chatId } = req.body;
   if (!verifyTelegramWebAppData(initData)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // Save settings (simplified for demonstration)
-  // In production, you'd use a database and map to specific chatIds
-  console.log('Updating settings:', settings);
+  console.log('Updating settings for chat:', chatId, settings);
+  if (chatId) {
+    const existing = groupSettings.get(chatId.toString()) || {};
+    groupSettings.set(chatId.toString(), { ...existing, ...settings });
+  }
   res.json({ success: true });
 });
 
@@ -358,19 +336,23 @@ bot.on('message', async (msg) => {
     if (shouldDelete) {
       try {
         await bot.deleteMessage(chatId, msg.message_id);
+        
+        if (!settings.spamControlEnabled) return;
+
         let userSpam = spamTracker.get(userId) || { count: 0, lastSpam: 0 };
         userSpam.count += 1;
         userSpam.lastSpam = Date.now();
         spamTracker.set(userId, userSpam);
 
         if (userSpam.count >= settings.banLimit) {
-          await bot.banChatMember(chatId, userId);
-          const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned for excessive spamming (${settings.banLimit}+ violations).`);
+          const banUntil = Math.floor(Date.now() / 1000) + (settings.banDuration || 7) * 24 * 60 * 60;
+          await bot.banChatMember(chatId, userId, { until_date: banUntil });
+          const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned for ${settings.banDuration || 7} days due to excessive spamming (${settings.banLimit}+ violations).`);
           setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
         } else if (userSpam.count >= settings.timeoutLimit) {
-          const untilDate = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+          const untilDate = Math.floor(Date.now() / 1000) + (settings.timeoutDuration || 24) * 60 * 60;
           await bot.restrictChatMember(chatId, userId, { until_date: untilDate, can_send_messages: false });
-          const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for 24 hours due to spamming.`);
+          const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for ${settings.timeoutDuration || 24} hours due to spamming.`);
           setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
         } else {
           const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly 8 or 10 character alphanumeric codes are allowed.`);

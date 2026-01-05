@@ -6,7 +6,10 @@ const state = {
     isAdmin: false,
     settings: {
         banLimit: 10,
-        timeoutLimit: 2
+        timeoutLimit: 2,
+        timeoutDuration: 24,
+        banDuration: 7,
+        spamControlEnabled: true
     },
     currentGroupId: null
 };
@@ -27,9 +30,9 @@ function showToast(msg) {
 function init() {
     // Check if we have initData from Telegram
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        // In a real app, we would verify this on the backend
-        // For this demo/task, we'll assume admin if certain conditions are met
-        // or provide a toggle for testing
+        if (tg.initDataUnsafe.chat) {
+            state.currentGroupId = tg.initDataUnsafe.chat.id;
+        }
         checkPermissions();
     } else {
         renderPublicView();
@@ -51,6 +54,9 @@ async function checkPermissions() {
         state.isAdmin = data.isAdmin;
         state.groupName = data.groupName || 'Current Group';
         state.isBotAdmin = data.isBotAdmin;
+        if (data.settings) {
+            state.settings = data.settings;
+        }
         renderPublicView();
     } catch (e) {
         console.error(e);
@@ -64,9 +70,8 @@ function renderPublicView() {
     elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
-    const botUsername = 'RedPacketGuardBot'; // In production, get this from bot.getMe() or via API
-    const newsChannelLink = 'https://t.me/RedPacketGuardNews'; // Replace with actual news channel link
-
+    const botUsername = 'RedPacketGuardBot'; 
+    
     let html = `
         <div class="section">
             <h2><i data-lucide="plus-circle"></i> Add Me To Your Chat</h2>
@@ -105,7 +110,7 @@ function renderPublicView() {
                     <div>
                         <strong>Time Out:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.timeoutLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Custom support enabled</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Duration: ${state.settings.timeoutDuration} hours</p>
                     </div>
                 </div>
                 <div class="card-item">
@@ -113,7 +118,14 @@ function renderPublicView() {
                     <div>
                         <strong>Ban:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Custom support enabled</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Duration: ${state.settings.banDuration} days</p>
+                    </div>
+                </div>
+                <div class="card-item">
+                    <div class="icon-wrapper" style="color: ${state.settings.spamControlEnabled ? '#10b981' : '#6b7280'};"><i data-lucide="shield-check"></i></div>
+                    <div>
+                        <strong>Spam Control:</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px;">${state.settings.spamControlEnabled ? 'Active' : 'Disabled'}</p>
                     </div>
                 </div>
             </div>
@@ -134,33 +146,6 @@ function renderPublicView() {
                     <div class="icon-wrapper"><i data-lucide="ruler"></i></div>
                     <span>Exactly 8 or 10 characters long</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2><i data-lucide="gavel"></i> Enforcement System</h2>
-            <div class="card">
-                <div class="card-item">
-                    <div class="icon-wrapper" style="color: #f59e0b;"><i data-lucide="clock"></i></div>
-                    <div>
-                        <strong>Time Out:</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">Temporary restriction for repeat violations.</p>
-                    </div>
-                </div>
-                <div class="card-item">
-                    <div class="icon-wrapper" style="color: #ef4444;"><i data-lucide="ban"></i></div>
-                    <div>
-                        <strong>Ban:</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">Permanent removal for excessive spamming.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="section">
-            <div class="card" style="border: none; background: transparent; box-shadow: none; padding: 0; margin: 0;">
-                <p style="font-size: 14px; margin: 0; color: var(--tg-theme-hint-color); text-align: center;">We do not store personal data. Only user IDs are used for enforcement.</p>
             </div>
         </div>
     `;
@@ -195,21 +180,39 @@ function renderAdminView() {
                 </select>
                 
                 <div class="card" style="padding: 12px; margin-bottom: 20px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
-                    <label for="ban-limit"><i data-lucide="user-x" style="color: #ef4444;"></i> Ban Spamming Limit</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100">
-                        <button class="btn" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('ban-limit', 1)"><i data-lucide="plus"></i></button>
-                        <button class="btn btn-secondary" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('ban-limit', -1)"><i data-lucide="minus"></i></button>
+                    <label><i data-lucide="clock" style="color: #f59e0b;"></i> Timeout Settings</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 14px; flex: 1;">Violations:</span>
+                            <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100" style="width: 80px;">
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 14px; flex: 1;">Duration (hours):</span>
+                            <input type="number" id="timeout-duration" value="${state.settings.timeoutDuration}" min="1" max="168" style="width: 80px;">
+                        </div>
                     </div>
                 </div>
-                
-                <div class="card" style="padding: 12px; margin-bottom: 24px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
-                    <label for="timeout-limit"><i data-lucide="timer" style="color: #f59e0b;"></i> Time Out Spamming Limit</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100">
-                        <button class="btn" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('timeout-limit', 1)"><i data-lucide="plus"></i></button>
-                        <button class="btn btn-secondary" style="margin-top: 0; padding: 10px; width: auto;" onclick="adjustLimit('timeout-limit', -1)"><i data-lucide="minus"></i></button>
+
+                <div class="card" style="padding: 12px; margin-bottom: 20px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
+                    <label><i data-lucide="ban" style="color: #ef4444;"></i> Ban Settings</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 14px; flex: 1;">Violations:</span>
+                            <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100" style="width: 80px;">
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 14px; flex: 1;">Duration (days):</span>
+                            <input type="number" id="ban-duration" value="${state.settings.banDuration}" min="1" max="365" style="width: 80px;">
+                        </div>
                     </div>
+                </div>
+
+                <div class="card" style="padding: 12px; margin-bottom: 24px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
+                    <label style="justify-content: space-between;">
+                        <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="shield-check"></i> Spam Control</span>
+                        <input type="checkbox" id="spam-control" ${state.settings.spamControlEnabled ? 'checked' : ''} style="width: auto;">
+                    </label>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Enable automatic warnings and restrictions.</p>
                 </div>
                 
                 <button class="btn" id="save-settings"><i data-lucide="save"></i> Save Settings</button>
@@ -222,25 +225,14 @@ function renderAdminView() {
     lucide.createIcons();
 }
 
-function adjustLimit(id, delta) {
-    const input = document.getElementById(id);
-    let val = parseInt(input.value) || 0;
-    val = Math.max(1, Math.min(100, val + delta));
-    input.value = val;
-}
-
 async function saveSettings() {
     const banLimit = parseInt(document.getElementById('ban-limit').value);
+    const banDuration = parseInt(document.getElementById('ban-duration').value);
     const timeoutLimit = parseInt(document.getElementById('timeout-limit').value);
+    const timeoutDuration = parseInt(document.getElementById('timeout-duration').value);
+    const spamControlEnabled = document.getElementById('spam-control').checked;
 
-    if (isNaN(banLimit) || banLimit < 1 || banLimit > 100) {
-        showToast('Ban limit must be 1-100');
-        return;
-    }
-    if (isNaN(timeoutLimit) || timeoutLimit < 1 || timeoutLimit > 100) {
-        showToast('Time out limit must be 1-100');
-        return;
-    }
+    const settings = { banLimit, banDuration, timeoutLimit, timeoutDuration, spamControlEnabled };
 
     try {
         const response = await fetch('/api/settings', {
@@ -248,13 +240,15 @@ async function saveSettings() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 initData: tg.initData,
-                settings: { banLimit, timeoutLimit }
+                chatId: state.currentGroupId,
+                settings: settings
             })
         });
         
         if (response.ok) {
-            state.settings = { banLimit, timeoutLimit };
+            state.settings = settings;
             showToast('Settings saved successfully!');
+            setTimeout(renderPublicView, 1000);
         } else {
             showToast('Failed to save settings');
         }
