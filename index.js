@@ -363,16 +363,27 @@ bot.on('message', async (msg) => {
   }
 
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
-    // Save group title if we don't have it
+    // Save group title if we don't have it or it changed
     const existing = groupSettings.get(chatId.toString()) || {};
-    if (!existing.title) {
+    if (!existing.title || existing.title !== msg.chat.title) {
       groupSettings.set(chatId.toString(), { ...existing, title: msg.chat.title });
     }
 
     const isAdmin = await isUserAdmin(chatId, userId);
     if (isAdmin) return;
 
-    const settings = groupSettings.get(chatId.toString()) || { timeoutLimit: 2, banLimit: 10 };
+    // Use specific group settings or defaults
+    const settings = groupSettings.get(chatId.toString()) || { 
+      timeoutLimit: 3, 
+      banLimit: 5, 
+      spamControlEnabled: true,
+      timeoutEnabled: true,
+      banEnabled: true,
+      timeoutDuration: '1h',
+      banDuration: '7d',
+      banType: 'temporary'
+    };
+    
     const user = msg.from;
     const name = user.username ? `@${user.username}` : (user.first_name + (user.last_name ? ` ${user.last_name}` : ''));
     let shouldDelete = false;
@@ -389,24 +400,26 @@ bot.on('message', async (msg) => {
       try {
         await bot.deleteMessage(chatId, msg.message_id);
         
-        if (!settings.spamControlEnabled) return;
+        if (settings.spamControlEnabled === false) return;
 
         // Custom duration parser
         const parseDuration = (dur, custom) => {
           const finalDur = dur === 'custom' ? custom : dur;
-          if (!finalDur) return 24 * 60 * 60; // default 24h
+          if (!finalDur) return 24 * 60 * 60;
           const unit = finalDur.slice(-1);
           const val = parseInt(finalDur);
           if (unit === 'm') return val * 60;
           if (unit === 'h') return val * 60 * 60;
           if (unit === 'd') return val * 24 * 60 * 60;
-          return isNaN(val) ? 24 * 60 * 60 : val * 24 * 60 * 60; // default to days if no unit
+          return isNaN(val) ? 24 * 60 * 60 : val * 24 * 60 * 60;
         };
 
-        let userSpam = spamTracker.get(userId) || { count: 0, lastSpam: 0 };
+        // Unique tracker key per chat and user
+        const trackerKey = `${chatId}_${userId}`;
+        let userSpam = spamTracker.get(trackerKey) || { count: 0, lastSpam: 0 };
         userSpam.count += 1;
         userSpam.lastSpam = Date.now();
-        spamTracker.set(userId, userSpam);
+        spamTracker.set(trackerKey, userSpam);
 
         if (settings.banEnabled !== false && userSpam.count >= settings.banLimit) {
           const banDurSeconds = settings.banType === 'permanent' ? 0 : parseDuration(settings.banDuration, settings.banCustomValue);
@@ -429,7 +442,7 @@ bot.on('message', async (msg) => {
             setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
           }
         } else {
-          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly 8 or 10 character alphanumeric codes are allowed.`);
+          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly 8 or 10 character alphanumeric codes are allowed.\n(Violation ${userSpam.count}/${settings.timeoutLimit})`);
           setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
         }
       } catch (error) {
