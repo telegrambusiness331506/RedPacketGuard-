@@ -92,12 +92,17 @@ function renderPublicView() {
             <h2><i data-lucide="list"></i> Select Group to Configure</h2>
             <div class="card" style="padding: 12px;">
                 ${state.availableGroups.length > 0 ? `
-                    <select id="group-selector" class="tg-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--tg-theme-hint-color); background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color);" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
-                        <option value="">Select a group...</option>
-                        ${state.availableGroups.map(group => `
-                            <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
-                        `).join('')}
-                    </select>
+                    <div class="select-wrapper">
+                        <select id="group-selector" class="tg-select" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--tg-theme-hint-color); background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color); font-size: 16px; appearance: none; -webkit-appearance: none;" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
+                            <option value="">Choose a group...</option>
+                            ${state.availableGroups.map(group => `
+                                <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
+                            `).join('')}
+                        </select>
+                        <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--tg-theme-hint-color);">
+                            <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                        </div>
+                    </div>
                 ` : `
                     <p style="text-align: center; color: var(--tg-theme-hint-color); font-size: 14px;">No groups added yet. Add the bot to a group first.</p>
                 `}
@@ -108,9 +113,9 @@ function renderPublicView() {
             <h2><i data-lucide="gavel"></i> User Enforcement Panel</h2>
             <div class="card" style="padding: 0; border: none; background: transparent;">
                 <button class="btn" onclick="renderAdminView()" style="margin-top: 0;" ${!state.currentGroupId ? 'disabled' : ''}>
-                    <i data-lucide="settings"></i> Configure ${state.groupName || 'Enforcement Rules'}
+                    <i data-lucide="settings"></i> Configure ${state.currentGroupId ? state.groupName : 'Enforcement Rules'}
                 </button>
-                ${!state.currentGroupId ? '<p style="margin: 8px 0 0 0; font-size: 12px; color: #ef4444; text-align: center;">Please select a group first</p>' : ''}
+                ${!state.currentGroupId ? '<p style="margin: 8px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">Select a group from the options above to manage its settings.</p>' : ''}
             </div>
         </div>
 
