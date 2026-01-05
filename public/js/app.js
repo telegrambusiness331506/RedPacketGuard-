@@ -93,9 +93,9 @@ function renderPublicView() {
                 <div class="select-wrapper">
                     <select id="group-selector" class="tg-select" onchange="selectGroup(this.value, this.options[this.selectedIndex].text)">
                         <option value="">Choose a group...</option>
-                        ${state.availableGroups.map(group => `
-                            <option value="${group.id}" ${state.currentGroupId === group.id ? 'selected' : ''}>${group.title}</option>
-                        `).join('')}
+                        ${state.availableGroups.map(group => \`
+                            <option value="\${group.id}" \${state.currentGroupId === group.id ? 'selected' : ''}>\${group.title}</option>
+                        \`).join('')}
                     </select>
                     <div class="select-arrow">
                         <i data-lucide="chevron-down"></i>
@@ -108,10 +108,10 @@ function renderPublicView() {
         <div class="section">
             <h2><i data-lucide="shield" class="icon-sm"></i> Enforcement Panel</h2>
             <div class="card">
-                <button class="btn ${!state.currentGroupId ? 'btn-disabled' : 'btn-primary'}" onclick="renderAdminView()" ${!state.currentGroupId ? 'disabled' : ''}>
+                <button class="btn \${!state.currentGroupId ? 'btn-disabled' : 'btn-primary'}" onclick="renderAdminView()" \${!state.currentGroupId ? 'disabled' : ''}>
                     <i data-lucide="settings"></i> Configure Rules
                 </button>
-                ${!state.currentGroupId ? '<p class="error-text">Please select a group first</p>' : `<p class="success-text">Active: ${state.groupName}</p>`}
+                \${!state.currentGroupId ? '<p class="error-text">Please select a group first</p>' : \`<p class="success-text">Active: \${state.groupName}</p>\`}
             </div>
         </div>
 
@@ -122,14 +122,14 @@ function renderPublicView() {
                     <div class="icon-circle warning"><i data-lucide="clock"></i></div>
                     <div class="card-info">
                         <strong>Time Out</strong>
-                        <span>After ${state.settings.timeoutLimit} violations</span>
+                        <span>After \${state.settings.timeoutLimit} violations</span>
                     </div>
                 </div>
                 <div class="card-item">
                     <div class="icon-circle error"><i data-lucide="ban"></i></div>
                     <div class="card-info">
                         <strong>Ban</strong>
-                        <span>After ${state.settings.banLimit} violations</span>
+                        <span>After \${state.settings.banLimit} violations</span>
                     </div>
                 </div>
             </div>
@@ -160,7 +160,6 @@ function renderAdminView() {
                             <button class="segment-btn ${state.settings.timeoutDuration === '10m' ? 'active' : ''}" onclick="setPreset('timeout', '10m')">10m</button>
                             <button class="segment-btn ${state.settings.timeoutDuration === '1h' ? 'active' : ''}" onclick="setPreset('timeout', '1h')">1h</button>
                             <button class="segment-btn ${state.settings.timeoutDuration === '1d' ? 'active' : ''}" onclick="setPreset('timeout', '1d')">1d</button>
-                            <button class="segment-btn ${state.settings.timeoutDuration === 'custom' ? 'active' : ''}" onclick="setPreset('timeout', 'custom')">Custom</button>
                         </div>
                     </div>
                     <div class="field">
@@ -202,7 +201,7 @@ function renderAdminView() {
 }
 
 window.setPreset = (type, val) => {
-    state.settings[\`\${type}Duration\`] = val;
+    state.settings[`${type}Duration`] = val;
     renderAdminView();
 };
 
@@ -215,7 +214,7 @@ window.selectGroup = async (id, title) => {
     if (!id) return;
     state.currentGroupId = id;
     state.groupName = title;
-    showToast(\`Selected: \${title}\`);
+    showToast(`Selected: ${title}`);
     
     try {
         const response = await fetch('/api/check-permission', {
