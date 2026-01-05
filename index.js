@@ -24,6 +24,24 @@ const groupSettings = new Map(); // chat_id -> { timeoutLimit, banLimit, timeout
 const spamTracker = new Map(); // user_id -> { count, lastSpam }
 const configSessions = new Map();
 
+// Helper to verify Telegram Web App data
+function verifyTelegramWebAppData(initData) {
+  if (!initData) return false;
+  const urlParams = new URLSearchParams(initData);
+  const hash = urlParams.get('hash');
+  urlParams.delete('hash');
+  
+  const dataCheckString = Array.from(urlParams.entries())
+    .map(([key, value]) => `${key}=${value}`)
+    .sort()
+    .join('\n');
+    
+  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(token).digest();
+  const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+  
+  return calculatedHash === hash;
+}
+
 // API Routes
 app.post('/api/check-permission', async (req, res) => {
   const { initData } = req.body;

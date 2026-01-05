@@ -87,14 +87,24 @@ function renderPublicView() {
         </div>
 
         <div class="section">
-            <h2><i data-lucide="gavel"></i> Current Enforcement</h2>
+            <h2><i data-lucide="gavel"></i> User Enforcement Panel</h2>
+            <div class="card" style="padding: 0; border: none; background: transparent;">
+                <button class="btn" onclick="renderAdminView()" style="margin-top: 0;">
+                    <i data-lucide="settings"></i> Configure Enforcement Rules
+                </button>
+                <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">Set timeout, ban, and spam rules for this group.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i data-lucide="info"></i> Current Rules</h2>
             <div class="card">
                 <div class="card-item">
                     <div class="icon-wrapper" style="color: #f59e0b;"><i data-lucide="clock"></i></div>
                     <div>
                         <strong>Time Out:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.timeoutLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Duration: ${state.settings.timeoutDuration}</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Duration: ${state.settings.timeoutDuration === 'custom' ? state.settings.timeoutCustomValue : state.settings.timeoutDuration}</p>
                     </div>
                 </div>
                 <div class="card-item">
@@ -102,16 +112,12 @@ function renderPublicView() {
                     <div>
                         <strong>Ban:</strong>
                         <p style="margin: 4px 0 0 0; font-size: 14px;">Triggered after <strong>${state.settings.banLimit}</strong> violations.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Type: ${state.settings.banType}</p>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Type: ${state.settings.banType} (${state.settings.banDuration === 'custom' ? state.settings.banCustomValue : state.settings.banDuration})</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
-
-    if (state.isAdmin) {
-        html += `<button class="btn" onclick="renderAdminView()"><i data-lucide="settings"></i> User Enforcement Panel</button>`;
-    }
 
     elements.content.innerHTML = html;
     lucide.createIcons();
