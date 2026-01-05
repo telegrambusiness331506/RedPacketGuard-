@@ -490,7 +490,7 @@ bot.on('message', async (msg) => {
           }
           // Don't reset count yet, let it continue toward ban
         } else {
-          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly 8 or 10 character alphanumeric codes are allowed.\n(Violation ${userSpam.count}/${settings.timeoutLimit})`);
+          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly Allowed Red Packet Codes Nothing Else\n(Violation ${userSpam.count}/${settings.timeoutLimit})`);
           setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
         }
       } catch (error) {
