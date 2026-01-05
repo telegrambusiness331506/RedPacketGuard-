@@ -155,12 +155,6 @@ function renderPublicView() {
             </div>
         </div>
 
-        <div class="section">
-            <div class="card" style="border: none; background: transparent; box-shadow: none; padding: 0; margin: 0;">
-                <p style="font-size: 14px; margin: 0; color: var(--tg-theme-hint-color); text-align: center;">We do not store personal data. Only user IDs are used for enforcement.</p>
-            </div>
-        </div>
-    `;
 
     if (state.isAdmin) {
         html += `<button class="btn" onclick="renderAdminView()"><i data-lucide="settings"></i> Admin Controls</button>`;
