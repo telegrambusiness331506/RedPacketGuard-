@@ -373,7 +373,7 @@ bot.on('message', async (msg) => {
     if (isAdmin) return;
 
     // Use specific group settings or defaults
-    const settings = groupSettings.get(chatId.toString()) || { 
+    const defaultSettings = { 
       timeoutLimit: 3, 
       banLimit: 5, 
       spamControlEnabled: true,
@@ -381,9 +381,17 @@ bot.on('message', async (msg) => {
       banEnabled: true,
       timeoutDuration: '1h',
       banDuration: '7d',
-      banType: 'temporary'
+      banType: 'temporary',
+      timeoutNotify: true,
+      banNotify: true
     };
+    const savedSettings = groupSettings.get(chatId.toString()) || {};
+    const settings = { ...defaultSettings, ...savedSettings };
     
+    // Ensure numeric values are integers
+    settings.timeoutLimit = parseInt(settings.timeoutLimit) || 3;
+    settings.banLimit = parseInt(settings.banLimit) || 5;
+
     const user = msg.from;
     const name = user.username ? `@${user.username}` : (user.first_name + (user.last_name ? ` ${user.last_name}` : ''));
     let shouldDelete = false;
@@ -431,6 +439,8 @@ bot.on('message', async (msg) => {
             const banMsg = await bot.sendMessage(chatId, `🚫 ${name} has been banned ${displayDur} due to excessive violations.`);
             setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
           }
+          // Reset count after ban
+          spamTracker.delete(trackerKey);
         } else if (settings.timeoutEnabled !== false && userSpam.count >= settings.timeoutLimit) {
           const timeoutDurSeconds = parseDuration(settings.timeoutDuration, settings.timeoutCustomValue);
           const untilDate = Math.floor(Date.now() / 1000) + timeoutDurSeconds;
@@ -441,6 +451,7 @@ bot.on('message', async (msg) => {
             const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for ${displayDur} due to violations.`);
             setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
           }
+          // Don't reset count yet, let it continue toward ban
         } else {
           const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nOnly 8 or 10 character alphanumeric codes are allowed.\n(Violation ${userSpam.count}/${settings.timeoutLimit})`);
           setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
