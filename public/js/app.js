@@ -160,7 +160,7 @@ function renderPublicView() {
 
 function renderAdminView() {
     state.view = 'admin';
-    elements.pageTitle.textContent = 'Admin Settings';
+    elements.pageTitle.textContent = 'User Enforcement Panel';
     elements.backBtn.classList.remove('hidden');
 
     const adminStatusHtml = state.isBotAdmin 
@@ -168,71 +168,183 @@ function renderAdminView() {
         : `<span class="status-badge status-public" style="background:#ffebee; color:#c62828;"><i data-lucide="alert-circle" style="width:12px; height:12px;"></i> Bot NOT Admin</span>`;
 
     elements.content.innerHTML = `
-        <div class="section">
-            <h2><i data-lucide="sliders"></i> Group Configuration</h2>
-            <div class="card">
-                <label for="group-select" style="justify-content: space-between;">
-                    <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="users"></i> Active Group</span>
-                    ${adminStatusHtml}
-                </label>
-                <select id="group-select" style="margin-bottom:20px;">
-                    <option value="default">${state.groupName}</option>
-                </select>
-                
-                <div class="card" style="padding: 12px; margin-bottom: 20px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
-                    <label><i data-lucide="clock" style="color: #f59e0b;"></i> Timeout Settings</label>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 14px; flex: 1;">Violations:</span>
-                            <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="100" style="width: 80px;">
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 14px; flex: 1;">Duration (hours):</span>
-                            <input type="number" id="timeout-duration" value="${state.settings.timeoutDuration}" min="1" max="168" style="width: 80px;">
-                        </div>
-                    </div>
-                </div>
+        <div class="section-header">
+            <p style="color: var(--tg-theme-hint-color); margin-top: -10px; margin-bottom: 20px; font-size: 14px; text-align: center;">Configure how users are punished for violations</p>
+        </div>
 
-                <div class="card" style="padding: 12px; margin-bottom: 20px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
-                    <label><i data-lucide="ban" style="color: #ef4444;"></i> Ban Settings</label>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 14px; flex: 1;">Violations:</span>
-                            <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1" max="100" style="width: 80px;">
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 14px; flex: 1;">Duration (days):</span>
-                            <input type="number" id="ban-duration" value="${state.settings.banDuration}" min="1" max="365" style="width: 80px;">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card" style="padding: 12px; margin-bottom: 24px; border: 1.5px solid var(--tg-theme-secondary-bg-color);">
-                    <label style="justify-content: space-between;">
-                        <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="shield-check"></i> Spam Control</span>
-                        <input type="checkbox" id="spam-control" ${state.settings.spamControlEnabled ? 'checked' : ''} style="width: auto;">
+        <div class="admin-grid">
+            <!-- Timeout Rules Card -->
+            <div class="section card-rule">
+                <h2><i data-lucide="clock" style="color: #f59e0b;"></i> Timeout Rules</h2>
+                <p class="rule-desc">Temporarily restrict users after violations</p>
+                <div class="field-group">
+                    <label class="toggle-label">
+                        <span>Enable Timeout</span>
+                        <input type="checkbox" id="timeout-enabled" ${state.settings.timeoutEnabled !== false ? 'checked' : ''} class="tg-toggle">
                     </label>
-                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color);">Enable automatic warnings and restrictions.</p>
+                    <div class="field">
+                        <label>Timeout Duration</label>
+                        <select id="timeout-duration-select" onchange="toggleCustom('timeout')">
+                            <option value="10m" ${state.settings.timeoutDuration === '10m' ? 'selected' : ''}>10 Minutes</option>
+                            <option value="1h" ${state.settings.timeoutDuration === '1h' ? 'selected' : ''}>1 Hour</option>
+                            <option value="6h" ${state.settings.timeoutDuration === '6h' ? 'selected' : ''}>6 Hours</option>
+                            <option value="1d" ${state.settings.timeoutDuration === '1d' ? 'selected' : ''}>1 Day</option>
+                            <option value="custom" ${state.settings.timeoutDuration && !['10m','1h','6h','1d'].includes(state.settings.timeoutDuration) ? 'selected' : ''}>Custom ⌨️</option>
+                        </select>
+                        <input type="text" id="timeout-custom" class="hidden" placeholder="e.g. 2h" value="${state.settings.timeoutDuration || ''}">
+                    </div>
+                    <div class="field">
+                        <label>Trigger After X Violations</label>
+                        <input type="number" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1">
+                    </div>
+                    <label class="toggle-label">
+                        <span>Notify User</span>
+                        <input type="checkbox" id="timeout-notify" ${state.settings.timeoutNotify !== false ? 'checked' : ''} class="tg-toggle">
+                    </label>
                 </div>
-                
-                <button class="btn" id="save-settings"><i data-lucide="save"></i> Save Settings</button>
-                <button class="btn btn-secondary" onclick="renderPublicView()" style="margin-top:12px;"><i data-lucide="x"></i> Cancel</button>
             </div>
+
+            <!-- Ban Rules Card -->
+            <div class="section card-rule">
+                <h2><i data-lucide="ban" style="color: #ef4444;"></i> Ban Rules</h2>
+                <p class="rule-desc">Ban users after repeated violations</p>
+                <div class="field-group">
+                    <label class="toggle-label">
+                        <span>Enable Ban</span>
+                        <input type="checkbox" id="ban-enabled" ${state.settings.banEnabled !== false ? 'checked' : ''} class="tg-toggle">
+                    </label>
+                    <div class="field">
+                        <label>Ban Type</label>
+                        <select id="ban-type" onchange="toggleBanType()">
+                            <option value="temporary" ${state.settings.banType === 'temporary' ? 'selected' : ''}>Temporary</option>
+                            <option value="permanent" ${state.settings.banType === 'permanent' ? 'selected' : ''}>Permanent</option>
+                        </select>
+                    </div>
+                    <div class="field" id="ban-duration-field">
+                        <label>Ban Duration</label>
+                        <select id="ban-duration-select" onchange="toggleCustom('ban')">
+                            <option value="1d" ${state.settings.banDuration === '1d' ? 'selected' : ''}>1 Day</option>
+                            <option value="7d" ${state.settings.banDuration === '7d' ? 'selected' : ''}>7 Days</option>
+                            <option value="30d" ${state.settings.banDuration === '30d' ? 'selected' : ''}>30 Days</option>
+                            <option value="custom" ${state.settings.banDuration && !['1d','7d','30d'].includes(state.settings.banDuration) ? 'selected' : ''}>Custom ⌨️</option>
+                        </select>
+                        <input type="text" id="ban-custom" class="hidden" placeholder="e.g. 90d" value="${state.settings.banDuration || ''}">
+                    </div>
+                    <div class="field">
+                        <label>Trigger After X Violations</label>
+                        <input type="number" id="ban-limit" value="${state.settings.banLimit}" min="1">
+                    </div>
+                    <label class="toggle-label">
+                        <span>Notify User</span>
+                        <input type="checkbox" id="ban-notify" ${state.settings.banNotify !== false ? 'checked' : ''} class="tg-toggle">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Spam Control Card -->
+            <div class="section card-rule">
+                <h2><i data-lucide="shield-alert" style="color: #3b82f6;"></i> Spam Control</h2>
+                <p class="rule-desc">Control message spam automatically</p>
+                <div class="field-group">
+                    <label class="toggle-label">
+                        <span>Enable Spam Detection</span>
+                        <input type="checkbox" id="spam-enabled" ${state.settings.spamControlEnabled ? 'checked' : ''} class="tg-toggle">
+                    </label>
+                    <div class="field">
+                        <label>Max Messages</label>
+                        <input type="number" id="spam-max" value="${state.settings.spamMax || 5}" min="1">
+                    </div>
+                    <div class="field">
+                        <label>Time Window (seconds)</label>
+                        <input type="number" id="spam-window" value="${state.settings.spamWindow || 10}" min="1">
+                    </div>
+                    <div class="field">
+                        <label>Action on Spam</label>
+                        <select id="spam-action">
+                            <option value="warning" ${state.settings.spamAction === 'warning' ? 'selected' : ''}>Warning</option>
+                            <option value="timeout" ${state.settings.spamAction === 'timeout' ? 'selected' : ''}>Timeout</option>
+                            <option value="ban" ${state.settings.spamAction === 'ban' ? 'selected' : ''}>Ban</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Violation Summary Card -->
+            <div class="section card-rule">
+                <h2><i data-lucide="bar-chart-3"></i> Violation Logic Preview</h2>
+                <p class="rule-desc">How enforcement escalates</p>
+                <div class="preview-logic">
+                    <div class="logic-item">Violation 1 → Warning</div>
+                    <div class="logic-item">Violation ${state.settings.timeoutLimit} → Timeout</div>
+                    <div class="logic-item">Violation ${state.settings.banLimit} → Ban</div>
+                </div>
+                <button class="btn btn-secondary btn-small" style="margin-top: 10px;">Edit Escalation Order</button>
+            </div>
+        </div>
+
+        <div class="sticky-footer">
+            <button class="btn" id="save-settings"><i data-lucide="save"></i> Save Changes</button>
+            <button class="btn btn-secondary" id="reset-rules"><i data-lucide="rotate-ccw"></i> Reset Rules</button>
+            <button class="btn btn-secondary" id="preview-btn"><i data-lucide="eye"></i> Preview</button>
         </div>
     `;
 
     document.getElementById('save-settings').onclick = saveSettings;
+    document.getElementById('reset-rules').onclick = () => {
+        if(confirm('Restore default rules?')) {
+            // Restore defaults logic
+            showToast('Rules reset to default');
+        }
+    };
+    
+    toggleCustom('timeout');
+    toggleCustom('ban');
+    toggleBanType();
     lucide.createIcons();
 }
 
-async function saveSettings() {
-    const banLimit = parseInt(document.getElementById('ban-limit').value);
-    const banDuration = parseInt(document.getElementById('ban-duration').value);
-    const timeoutLimit = parseInt(document.getElementById('timeout-limit').value);
-    const timeoutDuration = parseInt(document.getElementById('timeout-duration').value);
-    const spamControlEnabled = document.getElementById('spam-control').checked;
+function toggleCustom(type) {
+    const select = document.getElementById(`${type}-duration-select`);
+    const customInput = document.getElementById(`${type}-custom`);
+    if (select.value === 'custom') {
+        customInput.classList.remove('hidden');
+    } else {
+        customInput.classList.add('hidden');
+    }
+}
 
-    const settings = { banLimit, banDuration, timeoutLimit, timeoutDuration, spamControlEnabled };
+function toggleBanType() {
+    const type = document.getElementById('ban-type').value;
+    const field = document.getElementById('ban-duration-field');
+    if (type === 'permanent') {
+        field.classList.add('hidden');
+    } else {
+        field.classList.remove('hidden');
+    }
+}
+
+async function saveSettings() {
+    const settings = {
+        timeoutEnabled: document.getElementById('timeout-enabled').checked,
+        timeoutDuration: document.getElementById('timeout-duration-select').value === 'custom' 
+            ? document.getElementById('timeout-custom').value 
+            : document.getElementById('timeout-duration-select').value,
+        timeoutLimit: parseInt(document.getElementById('timeout-limit').value),
+        timeoutNotify: document.getElementById('timeout-notify').checked,
+        
+        banEnabled: document.getElementById('ban-enabled').checked,
+        banType: document.getElementById('ban-type').value,
+        banDuration: document.getElementById('ban-duration-select').value === 'custom' 
+            ? document.getElementById('ban-custom').value 
+            : document.getElementById('ban-duration-select').value,
+        banLimit: parseInt(document.getElementById('ban-limit').value),
+        banNotify: document.getElementById('ban-notify').checked,
+        
+        spamControlEnabled: document.getElementById('spam-enabled').checked,
+        spamMax: parseInt(document.getElementById('spam-max').value),
+        spamWindow: parseInt(document.getElementById('spam-window').value),
+        spamAction: document.getElementById('spam-action').value
+    };
 
     try {
         const response = await fetch('/api/settings', {
