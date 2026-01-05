@@ -217,7 +217,13 @@ No data is sold or shared. All processing is automated.
 
 📢 *Stay Updated:*
 [✨ Updated News](https://t.me/BotsUpdatedNews)`;
-    await bot.sendMessage(chatId, privacyPolicy, { parse_mode: 'Markdown', disable_web_page_preview: true });
+    await bot.sendMessage(chatId, privacyPolicy, { 
+      parse_mode: 'Markdown', 
+      disable_web_page_preview: true,
+      reply_markup: {
+        inline_keyboard: [[{ text: '🔙 Back', callback_data: 'back_to_start' }]]
+      }
+    });
   }
 
   if (action.startsWith('config_')) {
