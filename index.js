@@ -294,6 +294,14 @@ bot.on('message', async (msg) => {
   const userId = msg.from.id;
   const text = msg.text;
 
+  // Always track group title whenever we see a message in a group
+  if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
+    const existing = groupSettings.get(chatId.toString()) || {};
+    if (!existing.title || existing.title !== msg.chat.title) {
+      groupSettings.set(chatId.toString(), { ...existing, title: msg.chat.title });
+    }
+  }
+
   const session = configSessions.get(userId);
   if (session && msg.chat.type === 'private' && session.step === 'choose_limit' && text && !isNaN(text) && !text.startsWith('/')) {
     session.limit = parseInt(text);
@@ -303,6 +311,14 @@ bot.on('message', async (msg) => {
   }
 
   if (text === '/start' || (text && text.startsWith('/start'))) {
+    // Record group info if this happens in a group (though usually start is private)
+    if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
+      const existing = groupSettings.get(chatId.toString()) || {};
+      if (!existing.title) {
+        groupSettings.set(chatId.toString(), { ...existing, title: msg.chat.title });
+      }
+    }
+
     const startParam = text.split(' ')[1];
     if (startParam && startParam.startsWith('config_')) {
       const parts = startParam.split('_');
