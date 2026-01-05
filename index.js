@@ -148,7 +148,8 @@ function getHelpKeyboard(chatId = null) {
   return {
     inline_keyboard: [
       [{ text: '🔴 Ban Spamming Limit', callback_data: `${prefix}ban` }],
-      [{ text: '🟡 Time Out Spamming Limit', callback_data: `${prefix}timeout` }]
+      [{ text: '🟡 Time Out Spamming Limit', callback_data: `${prefix}timeout` }],
+      [{ text: '🔙 Back', callback_data: 'back_to_start' }]
     ]
   };
 }
@@ -294,6 +295,28 @@ No data is sold or shared. All processing is automated.
       session.step = 'choose_limit';
       showLimitSelection(userId, chatId, msg.message_id);
     }
+  }
+
+  if (action === 'back_to_start') {
+    await bot.answerCallbackQuery(callbackQuery.id);
+    const botUser = await bot.getMe();
+    const startMsg = `🛡️ *Red Packet Guard*\n\nI monitor your groups and remove spam messages. Only 8 or 10 character alphanumeric codes are allowed.\n\nUse /help to see rules and configuration.`;
+    
+    const addToGroupUrl = `https://t.me/${botUser.username}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages`;
+    const webAppUrl = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+
+    await bot.editMessageText(startMsg, {
+      chat_id: chatId,
+      message_id: msg.message_id,
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '➕ Add to Group', url: addToGroupUrl }],
+          [{ text: '⚙️ Configure via Mini App', web_app: { url: webAppUrl } }],
+          [{ text: '🛡️ Privacy Policy', callback_data: 'privacy_policy' }]
+        ]
+      }
+    });
   }
 });
 
