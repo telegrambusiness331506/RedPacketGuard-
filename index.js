@@ -20,6 +20,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Keep-alive endpoint for Uptime Robot
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 const groupSettings = new Map(); // chat_id -> { timeoutLimit, banLimit, timeoutDuration, banDuration, warningLimit, spamControlEnabled }
 const spamTracker = new Map(); // user_id -> { count, lastSpam }
 const configSessions = new Map();
@@ -108,6 +113,16 @@ app.post('/api/settings', async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Web Mini App server running at http://0.0.0.0:${PORT}`);
 });
+
+// Self-ping logic to keep the service alive if needed
+const axios = require('axios');
+const KEEP_ALIVE_URL = process.env.WEB_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/health`;
+
+setInterval(() => {
+  axios.get(KEEP_ALIVE_URL)
+    .then(() => console.log('Self-ping successful'))
+    .catch((err) => console.error('Self-ping failed:', err.message));
+}, 5 * 60 * 1000); // Every 5 minutes
 
 async function isUserAdmin(chatId, userId) {
   try {
