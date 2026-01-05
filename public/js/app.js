@@ -2,7 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 const state = {
-    view: 'public', // 'public' or 'admin'
+    view: 'public',
     isAdmin: false,
     settings: {
         banLimit: 5,
@@ -72,7 +72,6 @@ async function checkPermissions() {
 function renderPublicView() {
     state.view = 'public';
     elements.pageTitle.textContent = 'Red Packet Guard';
-    elements.backBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
     elements.backBtn.classList.add('hidden');
 
     const botUsername = 'RedPacketGuard_Bot'; 
@@ -140,148 +139,70 @@ function renderPublicView() {
     elements.content.innerHTML = html;
     lucide.createIcons();
 }
-    `;
-
-    elements.content.innerHTML = html;
-    lucide.createIcons();
-}
 
 function renderAdminView() {
     state.view = 'admin';
-    elements.pageTitle.textContent = 'USER ENFORCEMENT PANEL';
+    elements.pageTitle.textContent = 'CONFIGURE RULES';
     elements.backBtn.classList.remove('hidden');
 
-    elements.content.innerHTML = `
-        <div class="section-header">
-            <p style="color: var(--tg-theme-hint-color); margin-top: -10px; margin-bottom: 20px; font-size: 14px; text-align: center; text-transform: uppercase;">Configure punishments for user violations</p>
-        </div>
-
+    elements.content.innerHTML = \`
         <div class="admin-grid">
-            <!-- TIMEOUT Card -->
-            <div class="section card-rule">
+            <div class="section card">
                 <h2 class="rule-title">TIMEOUT</h2>
                 <div class="field-group">
                     <label class="toggle-label">
-                        <span>[ ON / OFF ] Enable Timeout</span>
-                        <input type="checkbox" id="timeout-enabled" ${state.settings.timeoutEnabled !== false ? 'checked' : ''} class="tg-toggle">
+                        <span>Enable Timeout</span>
+                        <input type="checkbox" id="timeout-enabled" \${state.settings.timeoutEnabled !== false ? 'checked' : ''} class="tg-toggle">
                     </label>
                     <div class="field">
-                        <label>Timeout Duration:</label>
+                        <label>Duration:</label>
                         <div class="segmented-control">
-                            <button class="segment-btn ${state.settings.timeoutDuration === '10m' ? 'active' : ''}" onclick="setPreset('timeout', '10m')">10m</button>
-                            <button class="segment-btn ${state.settings.timeoutDuration === '1h' ? 'active' : ''}" onclick="setPreset('timeout', '1h')">1h</button>
-                            <button class="segment-btn ${state.settings.timeoutDuration === '6h' ? 'active' : ''}" onclick="setPreset('timeout', '6h')">6h</button>
-                            <button class="segment-btn ${state.settings.timeoutDuration === '1d' ? 'active' : ''}" onclick="setPreset('timeout', '1d')">1d</button>
-                            <button class="segment-btn ${state.settings.timeoutDuration === 'custom' ? 'active' : ''}" onclick="setPreset('timeout', 'custom')">Custom</button>
-                        </div>
-                        <div id="timeout-custom-box" class="${state.settings.timeoutDuration === 'custom' ? '' : 'hidden'}" style="margin-top: 10px;">
-                            <label>Custom Time (min / hr / day):</label>
-                            <input type="text" id="timeout-custom" placeholder="e.g. 2h" value="${state.settings.timeoutCustomValue || ''}">
+                            <button class="segment-btn \${state.settings.timeoutDuration === '10m' ? 'active' : ''}" onclick="setPreset('timeout', '10m')">10m</button>
+                            <button class="segment-btn \${state.settings.timeoutDuration === '1h' ? 'active' : ''}" onclick="setPreset('timeout', '1h')">1h</button>
+                            <button class="segment-btn \${state.settings.timeoutDuration === '1d' ? 'active' : ''}" onclick="setPreset('timeout', '1d')">1d</button>
+                            <button class="segment-btn \${state.settings.timeoutDuration === 'custom' ? 'active' : ''}" onclick="setPreset('timeout', 'custom')">Custom</button>
                         </div>
                     </div>
                     <div class="field">
-                        <label>Trigger After Violations: [ <span id="timeout-limit-val">${state.settings.timeoutLimit}</span> ]</label>
-                        <input type="range" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="20" oninput="document.getElementById('timeout-limit-val').innerText = this.value">
+                        <label>Trigger After: [ <span id="timeout-limit-val">\${state.settings.timeoutLimit}</span> ]</label>
+                        <input type="range" id="timeout-limit" value="\${state.settings.timeoutLimit}" min="1" max="20" oninput="document.getElementById('timeout-limit-val').innerText = this.value">
                     </div>
-                    <button class="btn btn-save-rule" onclick="saveSubRule('timeout')">Save Timeout Rule</button>
                 </div>
             </div>
 
-            <!-- BAN Card -->
-            <div class="section card-rule">
+            <div class="section card">
                 <h2 class="rule-title">BAN</h2>
                 <div class="field-group">
                     <label class="toggle-label">
-                        <span>[ ON / OFF ] Enable Ban</span>
-                        <input type="checkbox" id="ban-enabled" ${state.settings.banEnabled !== false ? 'checked' : ''} class="tg-toggle">
+                        <span>Enable Ban</span>
+                        <input type="checkbox" id="ban-enabled" \${state.settings.banEnabled !== false ? 'checked' : ''} class="tg-toggle">
                     </label>
                     <div class="field">
-                        <label>Ban Type:</label>
+                        <label>Type:</label>
                         <div class="segmented-control">
-                            <button class="segment-btn ${state.settings.banType === 'temporary' ? 'active' : ''}" onclick="setBanType('temporary')">Temporary</button>
-                            <button class="segment-btn ${state.settings.banType === 'permanent' ? 'active' : ''}" onclick="setBanType('permanent')">Permanent</button>
-                        </div>
-                    </div>
-                    <div id="ban-temp-section" class="${state.settings.banType === 'permanent' ? 'hidden' : ''}">
-                        <div class="field" style="margin-top: 10px;">
-                            <label>Ban Duration:</label>
-                            <div class="segmented-control">
-                                <button class="segment-btn ${state.settings.banDuration === '1d' ? 'active' : ''}" onclick="setPreset('ban', '1d')">1d</button>
-                                <button class="segment-btn ${state.settings.banDuration === '7d' ? 'active' : ''}" onclick="setPreset('ban', '7d')">7d</button>
-                                <button class="segment-btn ${state.settings.banDuration === '30d' ? 'active' : ''}" onclick="setPreset('ban', '30d')">30d</button>
-                                <button class="segment-btn ${state.settings.banDuration === 'custom' ? 'active' : ''}" onclick="setPreset('ban', 'custom')">Custom</button>
-                            </div>
-                            <div id="ban-custom-box" class="${state.settings.banDuration === 'custom' ? '' : 'hidden'}" style="margin-top: 10px;">
-                                <label>Custom Days:</label>
-                                <input type="number" id="ban-custom" placeholder="e.g. 90" value="${state.settings.banCustomValue || ''}">
-                            </div>
+                            <button class="segment-btn \${state.settings.banType === 'temporary' ? 'active' : ''}" onclick="setBanType('temporary')">Temp</button>
+                            <button class="segment-btn \${state.settings.banType === 'permanent' ? 'active' : ''}" onclick="setBanType('permanent')">Perm</button>
                         </div>
                     </div>
                     <div class="field">
-                        <label>Trigger After Violations: [ <span id="ban-limit-val">${state.settings.banLimit}</span> ]</label>
-                        <input type="range" id="ban-limit" value="${state.settings.banLimit}" min="1" max="50" oninput="document.getElementById('ban-limit-val').innerText = this.value">
+                        <label>Trigger After: [ <span id="ban-limit-val">\${state.settings.banLimit}</span> ]</label>
+                        <input type="range" id="ban-limit" value="\${state.settings.banLimit}" min="1" max="50" oninput="document.getElementById('ban-limit-val').innerText = this.value">
                     </div>
-                    <button class="btn btn-save-rule" onclick="saveSubRule('ban')">Save Ban Rule</button>
-                </div>
-            </div>
-
-            <!-- SPAM CONTROL Card -->
-            <div class="section card-rule">
-                <h2 class="rule-title">SPAM CONTROL</h2>
-                <div class="field-group">
-                    <label class="toggle-label">
-                        <span>[ ON / OFF ] Enable Spam Protection</span>
-                        <input type="checkbox" id="spam-enabled" ${state.settings.spamControlEnabled ? 'checked' : ''} class="tg-toggle">
-                    </label>
-                    <div class="field">
-                        <label>Max Messages: [ <span id="spam-max-val">${state.settings.spamMax}</span> ]</label>
-                        <input type="range" id="spam-max" value="${state.settings.spamMax}" min="1" max="20" oninput="document.getElementById('spam-max-val').innerText = this.value">
-                    </div>
-                    <div class="field">
-                        <label>Time Window: [ <span id="spam-window-val">${state.settings.spamWindow}</span> ] seconds</label>
-                        <input type="range" id="spam-window" value="${state.settings.spamWindow}" min="1" max="60" oninput="document.getElementById('spam-window-val').innerText = this.value">
-                    </div>
-                    <div class="field">
-                        <label>Action on Spam:</label>
-                        <div class="segmented-control">
-                            <button class="segment-btn ${state.settings.spamAction === 'warning' ? 'active' : ''}" onclick="setSpamAction('warning')">Warning</button>
-                            <button class="segment-btn ${state.settings.spamAction === 'timeout' ? 'active' : ''}" onclick="setSpamAction('timeout')">Timeout</button>
-                            <button class="segment-btn ${state.settings.spamAction === 'ban' ? 'active' : ''}" onclick="setSpamAction('ban')">Ban</button>
-                        </div>
-                    </div>
-                    <div id="spam-timeout-box" class="${state.settings.spamAction === 'timeout' ? '' : 'hidden'}" style="margin-top: 10px;">
-                        <label>If Timeout: Duration [ 30m ]</label>
-                    </div>
-                    <button class="btn btn-save-rule" onclick="saveSubRule('spam')">Save Spam Rule</button>
-                </div>
-            </div>
-
-            <!-- VIOLATION FLOW Card -->
-            <div class="section card-rule">
-                <h2 class="rule-title">VIOLATION FLOW (PREVIEW)</h2>
-                <div class="preview-logic">
-                    <div class="logic-item">Violation 1 → Warning</div>
-                    <div class="logic-item">Violation ${state.settings.timeoutLimit} → Timeout (Custom Time)</div>
-                    <div class="logic-item">Violation ${state.settings.banLimit} → Ban (Custom Days)</div>
                 </div>
             </div>
         </div>
 
         <div class="sticky-footer">
-            <button class="btn" id="save-all" style="flex: 2;">Save All Rules</button>
-            <button class="btn btn-secondary" id="reset-rules" style="flex: 1;">Reset</button>
-            <button class="btn btn-secondary" id="test-btn" style="flex: 1;">Test</button>
+            <button class="btn btn-primary" id="save-all">Save All Changes</button>
         </div>
-    `;
+    \`;
 
     document.getElementById('save-all').onclick = saveAllSettings;
-    document.getElementById('reset-rules').onclick = resetSettings;
-    document.getElementById('test-btn').onclick = () => showToast('Simulating user violation...');
     lucide.createIcons();
 }
 
 window.setPreset = (type, val) => {
-    state.settings[`${type}Duration`] = val;
+    state.settings[\`\${type}Duration\`] = val;
     renderAdminView();
 };
 
@@ -290,17 +211,12 @@ window.setBanType = (val) => {
     renderAdminView();
 };
 
-window.setSpamAction = (val) => {
-    state.settings.spamAction = val;
-    renderAdminView();
-};
-
 window.selectGroup = async (id, title) => {
+    if (!id) return;
     state.currentGroupId = id;
     state.groupName = title;
-    showToast(`Selected group: ${title}`);
+    showToast(\`Selected: \${title}\`);
     
-    // Fetch settings for this group
     try {
         const response = await fetch('/api/check-permission', {
             method: 'POST',
@@ -320,22 +236,13 @@ window.selectGroup = async (id, title) => {
     }
 };
 
-window.saveSubRule = (ruleName) => {
-    showToast(`${ruleName.charAt(0).toUpperCase() + ruleName.slice(1)} rule saved locally.`);
-};
-
 async function saveAllSettings() {
     const settings = {
         ...state.settings,
         timeoutEnabled: document.getElementById('timeout-enabled').checked,
         timeoutLimit: parseInt(document.getElementById('timeout-limit').value),
-        timeoutCustomValue: document.getElementById('timeout-custom') ? document.getElementById('timeout-custom').value : state.settings.timeoutCustomValue,
         banEnabled: document.getElementById('ban-enabled').checked,
-        banLimit: parseInt(document.getElementById('ban-limit').value),
-        banCustomValue: document.getElementById('ban-custom') ? document.getElementById('ban-custom').value : state.settings.banCustomValue,
-        spamControlEnabled: document.getElementById('spam-enabled').checked,
-        spamMax: parseInt(document.getElementById('spam-max').value),
-        spamWindow: parseInt(document.getElementById('spam-window').value)
+        banLimit: parseInt(document.getElementById('ban-limit').value)
     };
 
     try {
@@ -351,31 +258,11 @@ async function saveAllSettings() {
         
         if (response.ok) {
             state.settings = settings;
-            showToast('All rules saved successfully!');
+            showToast('Settings saved!');
             setTimeout(renderPublicView, 1000);
-        } else {
-            showToast('Failed to save rules');
         }
     } catch (e) {
-        showToast('Error connecting to server');
-    }
-}
-
-function resetSettings() {
-    if(confirm('Restore default rules?')) {
-        state.settings = {
-            banLimit: 5,
-            timeoutLimit: 3,
-            timeoutDuration: '1h',
-            banDuration: '7d',
-            banType: 'temporary',
-            spamControlEnabled: true,
-            spamMax: 5,
-            spamWindow: 10,
-            spamAction: 'warning'
-        };
-        renderAdminView();
-        showToast('Rules reset to default');
+        showToast('Error saving settings');
     }
 }
 
