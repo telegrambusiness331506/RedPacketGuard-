@@ -71,12 +71,12 @@ function renderPublicView() {
         <div class="section">
             <h2><i data-lucide="plus-circle"></i> Add Me To Your Chat</h2>
             <div class="card" style="display: flex; flex-direction: column; gap: 12px; border: none; background: transparent; padding: 0;">
-                <button class="btn" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages')">
+                <button class="btn" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startgroup=true&admin=delete_messages+restrict_members+can_invite_users+pin_messages')">
                     <i data-lucide="users"></i> Add Me To Your Group
                 </button>
                 <p style="margin: -4px 0 8px 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">This Forward For Choice Group For Make Bot The Admin</p>
                 
-                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startchannel=true&admin=post_messages')">
+                <button class="btn btn-secondary" style="margin-top: 0; width: 100%;" onclick="tg.openTelegramLink('https://t.me/${botUsername}?startchannel=true&admin=post_messages+edit_messages+delete_messages+invite_users')">
                     <i data-lucide="megaphone"></i> Add Me To Your Channel
                 </button>
                 <p style="margin: -4px 0 0 0; font-size: 12px; color: var(--tg-theme-hint-color); text-align: center;">Change With Only Updated News</p>
