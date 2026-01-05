@@ -308,6 +308,7 @@ window.setSpamAction = (val) => {
 };
 
 window.selectGroup = async (id, title) => {
+    if (!id) return;
     state.currentGroupId = id;
     state.groupName = title;
     showToast(`Selected group: ${title}`);
@@ -323,6 +324,7 @@ window.selectGroup = async (id, title) => {
             })
         });
         const data = await response.json();
+        state.isAdmin = data.isAdmin;
         if (data.settings) {
             state.settings = { ...state.settings, ...data.settings };
         }

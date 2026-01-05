@@ -82,6 +82,7 @@ app.post('/api/check-permission', async (req, res) => {
       
       const userMember = await bot.getChatMember(targetChatId, user.id);
       console.log('User status in group:', userMember.status);
+      // Include 'creator' and 'administrator'. 'owner' is often aliased to 'creator' in TG API.
       isUserAdminOfGroup = ['administrator', 'creator', 'owner'].includes(userMember.status);
       
       const saved = groupSettings.get(targetChatId.toString());
@@ -91,6 +92,8 @@ app.post('/api/check-permission', async (req, res) => {
       }
     } catch (e) {
       console.error('Permission check error:', e.message);
+      // If we can't check permissions, we should fallback to checking if it's one of the tracked groups
+      // where the user might have been recorded as an admin.
     }
   }
 
@@ -102,7 +105,10 @@ app.post('/api/check-permission', async (req, res) => {
       if (['administrator', 'creator', 'owner'].includes(member.status)) {
         userAdminGroups.push({ id, title: settings.title || `Group ${id}` });
       }
-    } catch (e) {}
+    } catch (e) {
+      // Log failure but continue
+      console.log(`Failed to check membership for group ${id}:`, e.message);
+    }
   }
   
   res.json({ 
