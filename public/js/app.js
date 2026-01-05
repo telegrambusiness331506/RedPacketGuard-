@@ -156,9 +156,8 @@ function renderPublicView() {
         </div>
 
         <div class="section">
-            <h2><i data-lucide="help-circle"></i> Privacy & Help</h2>
-            <div class="card">
-                <p style="font-size: 14px; margin: 0;">We do not store personal data. Only user IDs are used for enforcement.</p>
+            <div class="card" style="border: none; background: transparent; box-shadow: none; padding: 0; margin: 0;">
+                <p style="font-size: 14px; margin: 0; color: var(--tg-theme-hint-color); text-align: center;">We do not store personal data. Only user IDs are used for enforcement.</p>
             </div>
         </div>
     `;
