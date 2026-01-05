@@ -197,6 +197,26 @@ input[type="range"] {
     margin-bottom: 0;
 }
 
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.tg-select {
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.tg-select:focus {
+    border-color: var(--tg-theme-link-color) !important;
+    outline: none;
+}
+
+.tg-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .rule-desc {
     font-size: 13px;
     color: var(--tg-theme-hint-color);
