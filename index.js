@@ -49,50 +49,64 @@ function verifyTelegramWebAppData(initData) {
 
 // API Routes
 app.post('/api/check-permission', async (req, res) => {
-  const { initData } = req.body;
+  const { initData, chatId: bodyChatId } = req.body;
   if (!verifyTelegramWebAppData(initData)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const urlParams = new URLSearchParams(initData);
+  const user = JSON.parse(urlParams.get('user'));
   const chatStr = urlParams.get('chat');
   
+  let targetChatId = bodyChatId;
   let groupName = 'Current Group';
+  
+  if (chatStr) {
+    const chatData = JSON.parse(chatStr);
+    targetChatId = chatData.id.toString();
+    groupName = chatData.title || groupName;
+  }
+
   let isBotAdmin = false;
+  let isUserAdminOfGroup = false;
   let currentSettings = { banLimit: 10, timeoutLimit: 2, timeoutDuration: '24h', banDuration: '7d', spamControlEnabled: true };
 
-  if (chatStr) {
+  if (targetChatId) {
     try {
-      const chatData = JSON.parse(chatStr);
-      groupName = chatData.title || groupName;
-      
       const botMe = await bot.getMe();
-      const member = await bot.getChatMember(chatData.id, botMe.id);
-      isBotAdmin = ['administrator', 'creator'].includes(member.status);
+      const botMember = await bot.getChatMember(targetChatId, botMe.id);
+      isBotAdmin = ['administrator', 'creator'].includes(botMember.status);
       
-      const saved = groupSettings.get(chatData.id.toString());
-      if (saved) currentSettings = { ...currentSettings, ...saved };
+      const userMember = await bot.getChatMember(targetChatId, user.id);
+      isUserAdminOfGroup = ['administrator', 'creator'].includes(userMember.status);
+      
+      const saved = groupSettings.get(targetChatId.toString());
+      if (saved) {
+        currentSettings = { ...currentSettings, ...saved };
+        groupName = saved.title || groupName;
+      }
     } catch (e) {
-      console.error('Bot admin check error:', e.message);
+      console.error('Permission check error:', e.message);
     }
-  } else {
-    // If no chat context, let's look for groups the user is an admin of
-    // This is a placeholder since we can't easily list groups without user interaction
-    // But we can check if the user has a specific session
-    const urlParams = new URLSearchParams(initData);
-    const user = JSON.parse(urlParams.get('user'));
-    // Return group list if we had one
+  }
+
+  // Filter groups to only show those where the user is an admin
+  const userAdminGroups = [];
+  for (const [id, settings] of groupSettings.entries()) {
+    try {
+      const member = await bot.getChatMember(id, user.id);
+      if (['administrator', 'creator'].includes(member.status)) {
+        userAdminGroups.push({ id, title: settings.title || `Group ${id}` });
+      }
+    } catch (e) {}
   }
   
   res.json({ 
-    isAdmin: true,
+    isAdmin: isUserAdminOfGroup,
     groupName: groupName,
     isBotAdmin: isBotAdmin,
     settings: currentSettings,
-    groups: Array.from(groupSettings.entries()).map(([id, settings]) => ({
-      id: id,
-      title: settings.title || `Group ${id}`
-    }))
+    groups: userAdminGroups
   }); 
 });
 
@@ -102,12 +116,28 @@ app.post('/api/settings', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  console.log('Updating settings for chat:', chatId, settings);
-  if (chatId) {
+  const urlParams = new URLSearchParams(initData);
+  const user = JSON.parse(urlParams.get('user'));
+
+  if (!chatId) {
+    return res.status(400).json({ error: 'Missing chatId' });
+  }
+
+  try {
+    const member = await bot.getChatMember(chatId, user.id);
+    const isUserAdminOfGroup = ['administrator', 'creator'].includes(member.status);
+    
+    if (!isUserAdminOfGroup) {
+      return res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
+
+    console.log('Updating settings for chat:', chatId, settings);
     const existing = groupSettings.get(chatId.toString()) || {};
     groupSettings.set(chatId.toString(), { ...existing, ...settings });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
-  res.json({ success: true });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
