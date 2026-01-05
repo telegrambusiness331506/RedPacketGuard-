@@ -145,27 +145,27 @@ function renderAdminView() {
     elements.pageTitle.textContent = 'CONFIGURE RULES';
     elements.backBtn.classList.remove('hidden');
 
-    elements.content.innerHTML = \`
+    elements.content.innerHTML = `
         <div class="admin-grid">
             <div class="section card">
                 <h2 class="rule-title">TIMEOUT</h2>
                 <div class="field-group">
                     <label class="toggle-label">
                         <span>Enable Timeout</span>
-                        <input type="checkbox" id="timeout-enabled" \${state.settings.timeoutEnabled !== false ? 'checked' : ''} class="tg-toggle">
+                        <input type="checkbox" id="timeout-enabled" ${state.settings.timeoutEnabled !== false ? 'checked' : ''} class="tg-toggle">
                     </label>
                     <div class="field">
                         <label>Duration:</label>
                         <div class="segmented-control">
-                            <button class="segment-btn \${state.settings.timeoutDuration === '10m' ? 'active' : ''}" onclick="setPreset('timeout', '10m')">10m</button>
-                            <button class="segment-btn \${state.settings.timeoutDuration === '1h' ? 'active' : ''}" onclick="setPreset('timeout', '1h')">1h</button>
-                            <button class="segment-btn \${state.settings.timeoutDuration === '1d' ? 'active' : ''}" onclick="setPreset('timeout', '1d')">1d</button>
-                            <button class="segment-btn \${state.settings.timeoutDuration === 'custom' ? 'active' : ''}" onclick="setPreset('timeout', 'custom')">Custom</button>
+                            <button class="segment-btn ${state.settings.timeoutDuration === '10m' ? 'active' : ''}" onclick="setPreset('timeout', '10m')">10m</button>
+                            <button class="segment-btn ${state.settings.timeoutDuration === '1h' ? 'active' : ''}" onclick="setPreset('timeout', '1h')">1h</button>
+                            <button class="segment-btn ${state.settings.timeoutDuration === '1d' ? 'active' : ''}" onclick="setPreset('timeout', '1d')">1d</button>
+                            <button class="segment-btn ${state.settings.timeoutDuration === 'custom' ? 'active' : ''}" onclick="setPreset('timeout', 'custom')">Custom</button>
                         </div>
                     </div>
                     <div class="field">
-                        <label>Trigger After: [ <span id="timeout-limit-val">\${state.settings.timeoutLimit}</span> ]</label>
-                        <input type="range" id="timeout-limit" value="\${state.settings.timeoutLimit}" min="1" max="20" oninput="document.getElementById('timeout-limit-val').innerText = this.value">
+                        <label>Trigger After: [ <span id="timeout-limit-val">${state.settings.timeoutLimit}</span> ]</label>
+                        <input type="range" id="timeout-limit" value="${state.settings.timeoutLimit}" min="1" max="20" oninput="document.getElementById('timeout-limit-val').innerText = this.value">
                     </div>
                 </div>
             </div>
@@ -175,18 +175,18 @@ function renderAdminView() {
                 <div class="field-group">
                     <label class="toggle-label">
                         <span>Enable Ban</span>
-                        <input type="checkbox" id="ban-enabled" \${state.settings.banEnabled !== false ? 'checked' : ''} class="tg-toggle">
+                        <input type="checkbox" id="ban-enabled" ${state.settings.banEnabled !== false ? 'checked' : ''} class="tg-toggle">
                     </label>
                     <div class="field">
                         <label>Type:</label>
                         <div class="segmented-control">
-                            <button class="segment-btn \${state.settings.banType === 'temporary' ? 'active' : ''}" onclick="setBanType('temporary')">Temp</button>
-                            <button class="segment-btn \${state.settings.banType === 'permanent' ? 'active' : ''}" onclick="setBanType('permanent')">Perm</button>
+                            <button class="segment-btn ${state.settings.banType === 'temporary' ? 'active' : ''}" onclick="setBanType('temporary')">Temp</button>
+                            <button class="segment-btn ${state.settings.banType === 'permanent' ? 'active' : ''}" onclick="setBanType('permanent')">Perm</button>
                         </div>
                     </div>
                     <div class="field">
-                        <label>Trigger After: [ <span id="ban-limit-val">\${state.settings.banLimit}</span> ]</label>
-                        <input type="range" id="ban-limit" value="\${state.settings.banLimit}" min="1" max="50" oninput="document.getElementById('ban-limit-val').innerText = this.value">
+                        <label>Trigger After: [ <span id="ban-limit-val">${state.settings.banLimit}</span> ]</label>
+                        <input type="range" id="ban-limit" value="${state.settings.banLimit}" min="1" max="50" oninput="document.getElementById('ban-limit-val').innerText = this.value">
                     </div>
                 </div>
             </div>
@@ -195,7 +195,7 @@ function renderAdminView() {
         <div class="sticky-footer">
             <button class="btn btn-primary" id="save-all">Save All Changes</button>
         </div>
-    \`;
+    `;
 
     document.getElementById('save-all').onclick = saveAllSettings;
     lucide.createIcons();
