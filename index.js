@@ -503,8 +503,55 @@ bot.on('message', async (msg) => {
         const isCommand = text && text.startsWith('/');
         if (isCommand && !isAdmin) {
           await bot.deleteMessage(chatId, msg.message_id);
-          const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nCommands are not allowed. Only 8 or 10 character alphanumeric codes.`);
-          setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
+          
+          // Unique tracker key per chat and user for command spam
+          const trackerKey = `${chatId}_${userId}`;
+          let userSpam = spamTracker.get(trackerKey) || { count: 0, lastSpam: 0 };
+          userSpam.count += 1;
+          userSpam.lastSpam = Date.now();
+          spamTracker.set(trackerKey, userSpam);
+
+          const defaultSettings = { timeoutLimit: 3, banLimit: 5, timeoutEnabled: true, banEnabled: true, timeoutDuration: '1h', banDuration: '7d', banType: 'temporary' };
+          const savedSettings = groupSettings.get(chatId.toString()) || {};
+          const settings = { ...defaultSettings, ...savedSettings };
+
+          if (settings.banEnabled !== false && userSpam.count >= settings.banLimit) {
+            const parseDuration = (dur, custom) => {
+              const finalDur = dur === 'custom' ? custom : dur;
+              if (!finalDur) return 24 * 60 * 60;
+              const unit = finalDur.slice(-1);
+              const val = parseInt(finalDur);
+              if (unit === 'm') return val * 60;
+              if (unit === 'h') return val * 60 * 60;
+              if (unit === 'd') return val * 24 * 60 * 60;
+              return isNaN(val) ? 24 * 60 * 60 : val * 24 * 60 * 60;
+            };
+            const banDurSeconds = settings.banType === 'permanent' ? 0 : parseDuration(settings.banDuration, settings.banCustomValue);
+            const banUntil = banDurSeconds === 0 ? 0 : Math.floor(Date.now() / 1000) + banDurSeconds;
+            await bot.banChatMember(chatId, userId, { until_date: banUntil });
+            const banMsg = await bot.sendMessage(chatId, `🚫 *User Banned*\n\n${name} has been banned for excessive command spam.`, { parse_mode: 'Markdown' });
+            setTimeout(() => bot.deleteMessage(chatId, banMsg.message_id).catch(() => {}), 10000);
+            spamTracker.delete(trackerKey);
+          } else if (settings.timeoutEnabled !== false && userSpam.count >= settings.timeoutLimit) {
+            const parseDuration = (dur, custom) => {
+              const finalDur = dur === 'custom' ? custom : dur;
+              if (!finalDur) return 24 * 60 * 60;
+              const unit = finalDur.slice(-1);
+              const val = parseInt(finalDur);
+              if (unit === 'm') return val * 60;
+              if (unit === 'h') return val * 60 * 60;
+              if (unit === 'd') return val * 24 * 60 * 60;
+              return isNaN(val) ? 24 * 60 * 60 : val * 24 * 60 * 60;
+            };
+            const timeoutDurSeconds = parseDuration(settings.timeoutDuration, settings.timeoutCustomValue);
+            const untilDate = Math.floor(Date.now() / 1000) + timeoutDurSeconds;
+            await bot.restrictChatMember(chatId, userId, { until_date: untilDate, can_send_messages: false });
+            const timeoutMsg = await bot.sendMessage(chatId, `⏳ Warning ${name}!\n\nYou have been timed out for command spam.`);
+            setTimeout(() => bot.deleteMessage(chatId, timeoutMsg.message_id).catch(() => {}), 10000);
+          } else {
+            const warningMsg = await bot.sendMessage(chatId, `⚠️ Warning ${name}!\n\nCommands are not allowed. Only 8 or 10 character alphanumeric codes. (Violation ${userSpam.count}/${settings.timeoutLimit})`);
+            setTimeout(() => bot.deleteMessage(chatId, warningMsg.message_id).catch(() => {}), 10000);
+          }
           return;
         }
 
